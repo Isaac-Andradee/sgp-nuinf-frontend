@@ -1,0 +1,286 @@
+export interface Setor {
+  id: string;
+  sigla: string;
+  nome: string;
+}
+
+export interface Equipamento {
+  id: string;
+  patrimonio: string;
+  serial: string;
+  tipo: string;
+  marca: string;
+  descricao: string;
+  setor: string;
+  responsavel: string;
+  status: "DISPONIVEL" | "EM_USO" | "MANUTENCAO" | "PROVISORIO";
+  hostname: string;
+  ip: string;
+}
+
+export const TIPOS_EQUIPAMENTO = [
+  "Desktop",
+  "Notebook",
+  "Monitor",
+  "Impressora",
+  "Scanner",
+  "Telefone IP",
+  "Switch",
+  "Roteador",
+  "Nobreak",
+  "Servidor",
+];
+
+export const STATUS_OPTIONS: {
+  value: Equipamento["status"];
+  label: string;
+  color: string;
+  bgColor: string;
+}[] = [
+  {
+    value: "DISPONIVEL",
+    label: "Disponivel",
+    color: "text-emerald-700",
+    bgColor: "bg-emerald-50 border-emerald-200",
+  },
+  {
+    value: "EM_USO",
+    label: "Em Uso",
+    color: "text-sky-700",
+    bgColor: "bg-sky-50 border-sky-200",
+  },
+  {
+    value: "MANUTENCAO",
+    label: "Manutencao",
+    color: "text-amber-700",
+    bgColor: "bg-amber-50 border-amber-200",
+  },
+  {
+    value: "PROVISORIO",
+    label: "Provisorio",
+    color: "text-rose-700",
+    bgColor: "bg-rose-50 border-rose-200",
+  },
+];
+
+export const initialSetores: Setor[] = [
+  { id: "1", sigla: "NUINF", nome: "Nucleo de Informatica" },
+  { id: "2", sigla: "GAB", nome: "Gabinete" },
+  { id: "3", sigla: "SADM", nome: "Secao Administrativa" },
+  { id: "4", sigla: "SJUR", nome: "Secao Juridica" },
+  { id: "5", sigla: "SFIN", nome: "Secao Financeira" },
+  { id: "6", sigla: "SECPE", nome: "Secao de Pessoal" },
+  { id: "7", sigla: "ESTOQUE", nome: "Estoque NUINF" },
+  { id: "8", sigla: "SCOM", nome: "Secao de Comunicacao" },
+];
+
+export const initialEquipamentos: Equipamento[] = [
+  {
+    id: "1",
+    patrimonio: "PAT-2024-001",
+    serial: "SN-DELL-7890A",
+    tipo: "Desktop",
+    marca: "Dell",
+    descricao: "OptiPlex 7090, i7-11700, 16GB RAM, SSD 512GB",
+    setor: "GAB",
+    responsavel: "Maria Silva",
+    status: "EM_USO",
+    hostname: "GAB-PC01",
+    ip: "192.168.1.10",
+  },
+  {
+    id: "2",
+    patrimonio: "PAT-2024-002",
+    serial: "SN-LNVO-4521B",
+    tipo: "Notebook",
+    marca: "Lenovo",
+    descricao: "ThinkPad T14 Gen3, i5-1235U, 8GB RAM, SSD 256GB",
+    setor: "NUINF",
+    responsavel: "Carlos Mendes",
+    status: "EM_USO",
+    hostname: "NUINF-NB01",
+    ip: "192.168.1.50",
+  },
+  {
+    id: "3",
+    patrimonio: "PAT-2024-003",
+    serial: "SN-HP-7712C",
+    tipo: "Impressora",
+    marca: "HP",
+    descricao: "LaserJet Pro M428fdw, Multifuncional",
+    setor: "SADM",
+    responsavel: "",
+    status: "EM_USO",
+    hostname: "SADM-IMP01",
+    ip: "192.168.1.200",
+  },
+  {
+    id: "4",
+    patrimonio: "PAT-2024-004",
+    serial: "SN-DELL-1234D",
+    tipo: "Monitor",
+    marca: "Dell",
+    descricao: 'Monitor Dell P2422H 24" IPS Full HD',
+    setor: "ESTOQUE",
+    responsavel: "",
+    status: "DISPONIVEL",
+    hostname: "",
+    ip: "",
+  },
+  {
+    id: "5",
+    patrimonio: "",
+    serial: "SN-LNVO-9988E",
+    tipo: "Desktop",
+    marca: "Lenovo",
+    descricao: "ThinkCentre M70q Gen3, i3-12100T, 8GB RAM",
+    setor: "SJUR",
+    responsavel: "Ana Costa",
+    status: "PROVISORIO",
+    hostname: "SJUR-PC01",
+    ip: "192.168.1.30",
+  },
+  {
+    id: "6",
+    patrimonio: "PAT-2024-006",
+    serial: "SN-CISC-5566F",
+    tipo: "Switch",
+    marca: "Cisco",
+    descricao: "Catalyst 2960-X 24 portas PoE+",
+    setor: "NUINF",
+    responsavel: "",
+    status: "EM_USO",
+    hostname: "SW-CORE-01",
+    ip: "192.168.1.1",
+  },
+  {
+    id: "7",
+    patrimonio: "PAT-2024-007",
+    serial: "SN-DELL-3344G",
+    tipo: "Servidor",
+    marca: "Dell",
+    descricao: "PowerEdge R740, Xeon Silver 4214, 64GB RAM",
+    setor: "NUINF",
+    responsavel: "Carlos Mendes",
+    status: "EM_USO",
+    hostname: "SRV-AD01",
+    ip: "192.168.1.2",
+  },
+  {
+    id: "8",
+    patrimonio: "PAT-2024-008",
+    serial: "SN-APC-1122H",
+    tipo: "Nobreak",
+    marca: "APC",
+    descricao: "Smart-UPS 3000VA, Online, Rack 2U",
+    setor: "NUINF",
+    responsavel: "",
+    status: "MANUTENCAO",
+    hostname: "",
+    ip: "",
+  },
+  {
+    id: "9",
+    patrimonio: "PAT-2024-009",
+    serial: "SN-DELL-6677I",
+    tipo: "Desktop",
+    marca: "Dell",
+    descricao: "OptiPlex 5090, i5-11500, 8GB RAM, SSD 256GB",
+    setor: "SFIN",
+    responsavel: "Joao Pereira",
+    status: "EM_USO",
+    hostname: "SFIN-PC01",
+    ip: "192.168.1.40",
+  },
+  {
+    id: "10",
+    patrimonio: "PAT-2024-010",
+    serial: "SN-LNVO-8899J",
+    tipo: "Notebook",
+    marca: "Lenovo",
+    descricao: "IdeaPad 3 15ITL6, i5-1135G7, 8GB RAM",
+    setor: "ESTOQUE",
+    responsavel: "",
+    status: "DISPONIVEL",
+    hostname: "",
+    ip: "",
+  },
+  {
+    id: "11",
+    patrimonio: "PAT-2024-011",
+    serial: "SN-HP-2233K",
+    tipo: "Monitor",
+    marca: "HP",
+    descricao: 'HP E24 G4 24" Full HD IPS',
+    setor: "ESTOQUE",
+    responsavel: "",
+    status: "DISPONIVEL",
+    hostname: "",
+    ip: "",
+  },
+  {
+    id: "12",
+    patrimonio: "PAT-2024-012",
+    serial: "SN-EPSON-4455L",
+    tipo: "Scanner",
+    marca: "Epson",
+    descricao: "WorkForce DS-530 II, ADF 50 folhas",
+    setor: "SCOM",
+    responsavel: "Paula Oliveira",
+    status: "EM_USO",
+    hostname: "",
+    ip: "",
+  },
+  {
+    id: "13",
+    patrimonio: "",
+    serial: "SN-DELL-7788M",
+    tipo: "Desktop",
+    marca: "Dell",
+    descricao: "Vostro 3710, i3-12100, 4GB RAM, HDD 1TB",
+    setor: "SECPE",
+    responsavel: "Roberto Lima",
+    status: "PROVISORIO",
+    hostname: "SECPE-PC01",
+    ip: "192.168.1.60",
+  },
+  {
+    id: "14",
+    patrimonio: "PAT-2024-014",
+    serial: "SN-YEAL-9900N",
+    tipo: "Telefone IP",
+    marca: "Yealink",
+    descricao: "T46U, Display colorido, 16 contas SIP",
+    setor: "GAB",
+    responsavel: "Maria Silva",
+    status: "EM_USO",
+    hostname: "GAB-FONE01",
+    ip: "192.168.2.10",
+  },
+  {
+    id: "15",
+    patrimonio: "PAT-2024-015",
+    serial: "SN-MIKR-1100O",
+    tipo: "Roteador",
+    marca: "MikroTik",
+    descricao: "hEX S (RB760iGS), RouterOS L4",
+    setor: "NUINF",
+    responsavel: "",
+    status: "MANUTENCAO",
+    hostname: "RT-EDGE-01",
+    ip: "192.168.1.254",
+  },
+  {
+    id: "16",
+    patrimonio: "PAT-2024-016",
+    serial: "SN-DELL-2200P",
+    tipo: "Desktop",
+    marca: "Dell",
+    descricao: "OptiPlex 3090, i5-10505, 16GB RAM, SSD 512GB",
+    setor: "SADM",
+    responsavel: "Fernanda Alves",
+    status: "EM_USO",
+    hostname: "SADM-PC01",
+    ip: "192.168.1.20",
+  },
+];
