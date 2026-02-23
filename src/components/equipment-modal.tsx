@@ -132,9 +132,9 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       brand: form.brand.trim(),
       description: form.description.trim() || undefined,
       type: form.type,
-      status: noAsset ? "PROVISORIO" : form.status,
+      status: form.status,
       sectorId: form.sectorId,
-      equipmentUser: shouldShowUserField(noAsset ? "PROVISORIO" : form.status)
+      equipmentUser: shouldShowUserField(form.status)
         ? form.equipmentUser.trim() || undefined
         : undefined,
       hostname: form.hostname.trim() || undefined,
@@ -151,7 +151,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
   if (!open) return null;
 
   const isEditing = !!equipment;
-  const showUser = shouldShowUserField(noAsset ? "PROVISORIO" : form.status);
+  const showUser = shouldShowUserField(form.status);
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -181,7 +181,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 Item sem etiqueta patrimonial?
               </span>
               <p className="text-[11px] text-amber-600 mt-0.5">
-                O item sera cadastrado com status PROVISORIO automaticamente.
+                Voce pode definir o status do equipamento abaixo.
               </p>
             </div>
           </label>
@@ -279,22 +279,20 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
           </div>
 
           {/* Status */}
-          {!noAsset && (
-            <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
-                Status
-              </label>
-              <select
-                value={form.status}
-                onChange={(e) => handleChange("status", e.target.value as EquipmentStatus)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
-              >
-                {EQUIPMENT_STATUSES.map((s) => (
-                  <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div>
+            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              Status
+            </label>
+            <select
+              value={form.status}
+              onChange={(e) => handleChange("status", e.target.value as EquipmentStatus)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
+            >
+              {EQUIPMENT_STATUSES.map((s) => (
+                <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+          </div>
 
           {/* Responsável */}
           {showUser && (
