@@ -13,7 +13,7 @@ const PASSWORD_REGEX = /^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).*
 export function SetupPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, refetchUser } = useAuth();
-  const [form, setForm] = useState({ username: "", password: "", email: "", fullName: "" });
+  const [form, setForm] = useState({ username: "", password: "", passwordConfirm: "", email: "", fullName: "" });
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -74,6 +74,10 @@ export function SetupPage() {
 
     if (!PASSWORD_REGEX.test(form.password)) {
       setError("Senha deve ter mínimo 8 caracteres, maiúscula, minúscula, número e caractere especial.");
+      return;
+    }
+    if (form.password !== form.passwordConfirm) {
+      setError("As senhas não coincidem. Confira e tente novamente.");
       return;
     }
 
@@ -188,6 +192,16 @@ export function SetupPage() {
                 <p className="text-[11px] text-gray-400 mt-1.5">
                   Mínimo 8 caracteres com maiúscula, minúscula, número e caractere especial.
                 </p>
+              </div>
+              <div>
+                <label className="block text-[12px] text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>Confirmar Senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="password" value={form.passwordConfirm} onChange={(e) => setForm((f) => ({ ...f, passwordConfirm: e.target.value }))}
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
+                    placeholder="Repita a senha" />
+                </div>
               </div>
 
               <button type="submit" disabled={loading}

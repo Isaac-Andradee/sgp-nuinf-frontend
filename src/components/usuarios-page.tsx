@@ -4,7 +4,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../api/user.api";
 import type { UserResponse, UserRole, CreateUserRequest, UpdateUserRequest } from "../types";
 import { USER_ROLE_LABELS } from "../types";
+import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
+
+/** Hierarquia: DEV > ADMIN > USER > VIEWER. Apenas roles acima podem editar/excluir. ADMIN não edita/exclui DEV. */
+function canEditUser(actorRole: UserRole | undefined, targetUser: UserResponse): boolean {
+  if (!actorRole) return false;
+  if (actorRole === "DEV") return true;
+  if (actorRole === "ADMIN") return targetUser.role !== "DEV";
+  return false; // USER e VIEWER não têm acesso à página de usuários (rota AdminOnly)
+}
 
 const PASSWORD_REGEX = /^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).*$/;
 
@@ -20,22 +29,28 @@ function UserModal({
   onClose,
   onSaved,
   user,
+  currentUserRole,
 }: {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
   user: UserResponse | null;
+  currentUserRole: UserRole | undefined;
 }) {
+  /** ADMIN não pode atribuir role DEV; apenas DEV pode. */
+  const assignableRoles: UserRole[] = currentUserRole === "DEV"
+    ? (Object.keys(USER_ROLE_LABELS) as UserRole[])
+    : (Object.keys(USER_ROLE_LABELS) as UserRole[]).filter((r) => r !== "DEV");
   const [form, setForm] = useState<{
-    username: string; password: string; email: string; fullName: string; role: UserRole; enabled: boolean;
-  }>({ username: "", password: "", email: "", fullName: "", role: "USER", enabled: true });
+    username: string; password: string; passwordConfirm: string; email: string; fullName: string; role: UserRole; enabled: boolean;
+  }>({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "USER", enabled: true });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
-      setForm({ username: user.username, password: "", email: user.email, fullName: user.fullName, role: user.role, enabled: user.enabled ?? true });
+      setForm({ username: user.username, password: "", passwordConfirm: "", email: user.email, fullName: user.fullName, role: user.role, enabled: user.enabled ?? true });
     } else {
-      setForm({ username: "", password: "", email: "", fullName: "", role: "USER", enabled: true });
+      setForm({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "USER", enabled: true });
     }
     setErrors({});
   }, [user, open]);
@@ -68,8 +83,10 @@ function UserModal({
       if (!form.username.trim() || form.username.length < 3) e.username = "Usuário deve ter pelo menos 3 caracteres";
       if (!form.password) e.password = "Senha obrigatória";
       else if (!PASSWORD_REGEX.test(form.password)) e.password = "Senha deve ter maiúscula, minúscula, número e caractere especial (mín. 8 chars)";
+      if (form.password !== form.passwordConfirm) e.passwordConfirm = "As senhas não coincidem.";
     } else {
       if (form.password && !PASSWORD_REGEX.test(form.password)) e.password = "Senha deve ter maiúscula, minúscula, número e caractere especial (mín. 8 chars)";
+      if (form.password && form.password !== form.passwordConfirm) e.passwordConfirm = "As senhas não coincidem.";
     }
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email inválido";
     if (!form.fullName.trim()) e.fullName = "Nome obrigatório";
@@ -167,7 +184,7 @@ function UserModal({
               {...field("role")}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
             >
-              {(Object.keys(USER_ROLE_LABELS) as UserRole[]).map((r) => (
+              {assignableRoles.map((r) => (
                 <option key={r} value={r}>{USER_ROLE_LABELS[r]}</option>
               ))}
             </select>
@@ -184,6 +201,19 @@ function UserModal({
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.password ? "border-red-400" : "border-gray-200"}`}
             />
             {errors.password && <p className="text-[11px] text-red-500 mt-1">{errors.password}</p>}
+          </div>
+          <div>
+            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              {user ? "Confirmar Nova Senha" : "Confirmar Senha"}
+            </label>
+            <input
+              type="password"
+              value={form.passwordConfirm}
+              {...field("passwordConfirm")}
+              placeholder={user ? "Repita a nova senha (opcional)" : "Repita a senha"}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.passwordConfirm ? "border-red-400" : "border-gray-200"}`}
+            />
+            {errors.passwordConfirm && <p className="text-[11px] text-red-500 mt-1">{errors.passwordConfirm}</p>}
           </div>
           {user && (
             <label className="flex items-center gap-3 cursor-pointer">
@@ -215,6 +245,7 @@ const PAGE_SIZE = 10;
 
 export function UsuariosPage() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [page, setPage] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
@@ -326,41 +357,51 @@ export function UsuariosPage() {
                       </span>
                     </td>
                     <td className="px-4 md:px-6 py-3.5">
-                      <button
-                        onClick={() => toggleMutation.mutate({ id: u.id, enabled: !(u.enabled ?? true) })}
-                        className="flex items-center gap-1.5 transition-colors"
-                        title={u.enabled !== false ? "Desativar" : "Ativar"}
-                      >
-                        {u.enabled !== false ? (
-                          <>
-                            <ToggleRight className="w-5 h-5 text-emerald-500" />
-                            <span className="text-[12px] text-emerald-600" style={{ fontWeight: 500 }}>Ativo</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-5 h-5 text-gray-400" />
-                            <span className="text-[12px] text-gray-400" style={{ fontWeight: 500 }}>Inativo</span>
-                          </>
-                        )}
-                      </button>
+                      {canEditUser(currentUser?.role, u) ? (
+                        <button
+                          onClick={() => toggleMutation.mutate({ id: u.id, enabled: !(u.enabled ?? true) })}
+                          className="flex items-center gap-1.5 transition-colors"
+                          title={u.enabled !== false ? "Desativar" : "Ativar"}
+                        >
+                          {u.enabled !== false ? (
+                            <>
+                              <ToggleRight className="w-5 h-5 text-emerald-500" />
+                              <span className="text-[12px] text-emerald-600" style={{ fontWeight: 500 }}>Ativo</span>
+                            </>
+                          ) : (
+                            <>
+                              <ToggleLeft className="w-5 h-5 text-gray-400" />
+                              <span className="text-[12px] text-gray-400" style={{ fontWeight: 500 }}>Inativo</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                          {u.enabled !== false ? "Ativo" : "Inativo"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 md:px-6 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => { setEditingUser(u); setModalOpen(true); }}
-                          className="p-2 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-all"
-                          title="Editar"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(u)}
-                          className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                          title="Excluir"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {canEditUser(currentUser?.role, u) ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setEditingUser(u); setModalOpen(true); }}
+                            className="p-2 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-all"
+                            title="Editar"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(u)}
+                            className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -397,6 +438,7 @@ export function UsuariosPage() {
         onClose={() => { setModalOpen(false); setEditingUser(null); }}
         onSaved={handleSaved}
         user={editingUser}
+        currentUserRole={currentUser?.role}
       />
     </div>
   );
