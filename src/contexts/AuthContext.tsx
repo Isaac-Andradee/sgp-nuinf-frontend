@@ -101,7 +101,7 @@ export function usePermissions() {
     canCreateEquipment: role !== 'VIEWER',
     canEditEquipment:   isAdmin || role === 'USER',
     canDeleteEquipment: isAdmin,
-    canManageSectors:   role !== 'VIEWER',
+    canManageSectors:   isAdmin, // somente ADMIN e DEV podem criar/editar/excluir setores
     canViewAudit:       isAdmin,
     canControlSystem:   isDev, // somente DEV pode gerenciar manutenção e configs do sistema
   };
