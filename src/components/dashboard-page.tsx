@@ -23,6 +23,8 @@ import {
   Keyboard,
   ChevronDown,
   Filter,
+  Archive,
+  Zap,
 } from "lucide-react";
 import { equipmentApi } from "../api/equipment.api";
 import { sectorApi } from "../api/sector.api";
@@ -33,6 +35,7 @@ import {
   EQUIPMENT_STATUS_COLORS,
 } from "../types";
 import { EquipmentModal } from "./equipment-modal";
+import { EquipmentDetailsModal } from "./equipment-details-modal";
 import { ConfirmDialog } from "./confirm-dialog";
 import { usePermissions } from "../contexts/AuthContext";
 import { toast } from "sonner";
@@ -41,8 +44,8 @@ const ITEMS_PER_PAGE = 8;
 
 function getTypeIcon(tipo: EquipmentType) {
   switch (tipo) {
-    case "DESKTOP": return Monitor;
-    case "LAPTOP": return Laptop;
+    case "PC": return Monitor;
+    case "NOTEBOOK": return Laptop;
     case "IMPRESSORA": return Printer;
     case "SERVIDOR": return Server;
     case "SWITCH": return Wifi;
@@ -50,6 +53,7 @@ function getTypeIcon(tipo: EquipmentType) {
     case "MONITOR": return Monitor;
     case "MOUSE": return Mouse;
     case "TECLADO": return Keyboard;
+    case "ESTABILIZADOR": return Zap;
     default: return HardDrive;
   }
 }
@@ -61,6 +65,7 @@ const EQUIPMENT_STATUS_TOOLTIPS: Record<EquipmentStatus, string> = {
   EM_USO:       "Em Uso — alocado a um usuário ou setor",
   MANUTENCAO:   "Em Manutenção — enviado para reparo",
   BAIXADO:      "Baixado — descartado definitivamente do patrimônio",
+  EXCLUIDO:     "Excluído — oculto da tabela geral, mantido apenas para histórico",
 };
 
 function StatusBadge({ status }: { status: EquipmentStatus }) {
@@ -78,7 +83,7 @@ function StatusBadge({ status }: { status: EquipmentStatus }) {
 
 export function DashboardPage() {
   const queryClient = useQueryClient();
-  const { canCreateEquipment, canEditEquipment, canDeleteEquipment } = usePermissions();
+  const { canCreateEquipment, canEditEquipment, canDeleteEquipment, isAdmin } = usePermissions();
 
   const [showStats, setShowStats] = useState(false);
   const [selectedSector, setSelectedSector] = useState<SectorMetricDTO | null>(null);
@@ -90,6 +95,7 @@ export function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<EquipmentResponseDTO | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EquipmentResponseDTO | null>(null);
+  const [viewingEquipment, setViewingEquipment] = useState<EquipmentResponseDTO | null>(null);
 
   // Queries
   const { data: kpis, isLoading: kpisLoading } = useQuery({
@@ -134,18 +140,19 @@ export function DashboardPage() {
     staleTime: 15_000,
   });
 
-  // Mutations
-  const deleteMutation = useMutation({
-    mutationFn: equipmentApi.remove,
+  // Marcar como EXCLUIDO (some da listagem geral; ADMIN/DEV podem ver no card Excluídos)
+  const excludeMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof equipmentApi.update>[1] }) =>
+      equipmentApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] });
       queryClient.invalidateQueries({ queryKey: ["equipments-paged"] });
       queryClient.invalidateQueries({ queryKey: ["equipments-filter"] });
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
       queryClient.invalidateQueries({ queryKey: ["sector-stats"] });
-      toast.success("Equipamento removido com sucesso.");
+      toast.success("Equipamento marcado como excluído e removido da listagem geral.");
     },
-    onError: () => toast.error("Erro ao remover equipamento."),
+    onError: () => toast.error("Erro ao marcar equipamento como excluído."),
   });
 
   const handleDelete = (equip: EquipmentResponseDTO) => {
@@ -154,7 +161,19 @@ export function DashboardPage() {
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
-    deleteMutation.mutate(deleteTarget.id, {
+    const payload = {
+      assetNumber: deleteTarget.assetNumber,
+      serialNumber: deleteTarget.serialNumber ?? undefined,
+      description: deleteTarget.description ?? undefined,
+      hostname: deleteTarget.hostname ?? undefined,
+      ipAddress: deleteTarget.ipAddress ?? undefined,
+      brand: deleteTarget.brand,
+      type: deleteTarget.type,
+      status: "EXCLUIDO" as const,
+      equipmentUser: undefined,
+      sectorId: deleteTarget.currentSector.id,
+    };
+    excludeMutation.mutate({ id: deleteTarget.id, data: payload }, {
       onSettled: () => setDeleteTarget(null),
     });
   };
@@ -231,6 +250,7 @@ export function DashboardPage() {
       color: "text-emerald-600",
       bg: "bg-emerald-50",
       border: "border-emerald-500",
+      status: "DISPONIVEL" as EquipmentStatus,
     },
     {
       label: "Em Uso",
@@ -239,6 +259,7 @@ export function DashboardPage() {
       color: "text-sky-600",
       bg: "bg-sky-50",
       border: "border-sky-500",
+      status: "EM_USO" as EquipmentStatus,
     },
     {
       label: "Manutencao",
@@ -247,6 +268,7 @@ export function DashboardPage() {
       color: "text-amber-600",
       bg: "bg-amber-50",
       border: "border-amber-500",
+      status: "MANUTENCAO" as EquipmentStatus,
     },
     {
       label: "Provisorios",
@@ -255,11 +277,26 @@ export function DashboardPage() {
       color: "text-rose-600",
       bg: "bg-rose-50",
       border: "border-rose-500",
+      status: "PROVISORIO" as EquipmentStatus,
     },
+    // Card "Excluídos" — visível apenas para ADMIN/DEV
+    ...(isAdmin
+      ? [
+          {
+            label: "Excluidos",
+            value: kpis?.totalExcluido ?? "-",
+            icon: Archive,
+            color: "text-slate-600",
+            bg: "bg-slate-50",
+            border: "border-slate-500",
+            status: "EXCLUIDO" as EquipmentStatus,
+          },
+        ]
+      : []),
   ];
 
-  const EQUIPMENT_TYPES: EquipmentType[] = ["DESKTOP", "MONITOR", "TECLADO", "MOUSE", "LAPTOP", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR"];
-  const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO"];
+  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "MOUSE", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR"];
+  const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
   return (
     <div className="p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -303,13 +340,28 @@ export function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+      <div className={`grid grid-cols-2 ${isAdmin ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-3 md:gap-4 mb-6`}>
         {kpiCards.map((kpi) => {
           const Icon = kpi.icon;
+          const isSelected = filterStatus === kpi.status;
           return (
             <div
               key={kpi.label}
-              className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-shadow duration-200`}
+              onClick={() => {
+                if (isSelected) {
+                  setFilterStatus("");
+                  setCurrentPage(0);
+                } else {
+                  setFilterStatus(kpi.status);
+                  setCurrentPage(0);
+                  setSelectedSector(null);
+                  setFilterSetorId("");
+                  setFilterTipo("");
+                }
+              }}
+              className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+                isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+              }`}
             >
               <div>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
@@ -618,13 +670,17 @@ export function DashboardPage() {
                   const TypeIcon = getTypeIcon(equip.type);
                   const hasAsset = equip.assetNumber && !equip.assetNumber.startsWith("PROV-");
                   return (
-                    <tr key={equip.id} className="hover:bg-sky-50/30 transition-colors duration-150">
+                    <tr
+                      key={equip.id}
+                      className="hover:bg-sky-50/30 transition-colors duration-150 cursor-pointer"
+                      onClick={() => setViewingEquipment(equip)}
+                    >
                       <td className="px-4 md:px-6 py-3.5 whitespace-nowrap">
                         <span
                           className={`text-[13px] ${hasAsset ? "text-foreground" : "text-rose-500 italic"}`}
                           style={{ fontWeight: hasAsset ? 600 : 400 }}
                         >
-                          {hasAsset ? equip.assetNumber : "Sem etiqueta"}
+                          {hasAsset ? equip.assetNumber : "Sem Patrimônio"}
                         </span>
                       </td>
                       <td className="px-4 md:px-6 py-3.5 text-muted-foreground whitespace-nowrap text-[12px]">
@@ -670,7 +726,7 @@ export function DashboardPage() {
                         <StatusBadge status={equip.status} />
                       </td>
                       <td className="px-4 md:px-6 py-3.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           {canEditEquipment && (
                             <button
                               onClick={() => handleEdit(equip)}
@@ -749,20 +805,35 @@ export function DashboardPage() {
         sectors={sectors ?? []}
       />
 
-      {/* Confirmação de exclusão */}
+      {/* Modal de detalhes do equipamento */}
+      <EquipmentDetailsModal
+        open={!!viewingEquipment}
+        onClose={() => setViewingEquipment(null)}
+        equipment={viewingEquipment}
+        onEdit={
+          canEditEquipment && viewingEquipment
+            ? () => {
+                setViewingEquipment(null);
+                handleEdit(viewingEquipment);
+              }
+            : undefined
+        }
+      />
+
+      {/* Confirmação: marcar como excluído (status EXCLUIDO) */}
       <ConfirmDialog
         open={!!deleteTarget}
         variant="danger"
-        title="Excluir Equipamento"
+        title="Marcar como Excluído"
         message={
           deleteTarget
-            ? `Você está prestes a excluir permanentemente o equipamento:\n${deleteTarget.assetNumber || deleteTarget.serialNumber || "sem identificação"} — ${deleteTarget.brand}`
+            ? `O equipamento será marcado como excluído e sairá da listagem geral.\nAdministradores ainda poderão visualizá-lo no card "Excluídos".\n\n${deleteTarget.assetNumber || deleteTarget.serialNumber || "sem identificação"} — ${deleteTarget.brand}`
             : ""
         }
         requirePhrase="CONFIRMAR"
-        confirmLabel="Excluir permanentemente"
+        confirmLabel="Marcar como excluído"
         cancelLabel="Cancelar"
-        loading={deleteMutation.isPending}
+        loading={excludeMutation.isPending}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />

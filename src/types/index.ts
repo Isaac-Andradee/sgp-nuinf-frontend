@@ -3,15 +3,16 @@
 export type UserRole = 'ADMIN' | 'USER' | 'VIEWER' | 'DEV';
 
 export type EquipmentType =
-  | 'DESKTOP'
+  | 'PC'
   | 'MONITOR'
   | 'TECLADO'
   | 'MOUSE'
-  | 'LAPTOP'
+  | 'NOTEBOOK'
   | 'IMPRESSORA'
   | 'ROTEADOR'
   | 'SWITCH'
-  | 'SERVIDOR';
+  | 'SERVIDOR'
+  | 'ESTABILIZADOR';
 
 export type EquipmentStatus =
   | 'DISPONIVEL'
@@ -19,20 +20,22 @@ export type EquipmentStatus =
   | 'PROVISORIO'
   | 'EM_USO'
   | 'MANUTENCAO'
-  | 'BAIXADO';
+  | 'BAIXADO'
+  | 'EXCLUIDO';
 
 // ─── Labels e Cores ──────────────────────────────────────────────────────────
 
 export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
-  DESKTOP: 'Desktop',
+  PC: 'PC',
   MONITOR: 'Monitor',
   TECLADO: 'Teclado',
   MOUSE: 'Mouse',
-  LAPTOP: 'Laptop',
+  NOTEBOOK: 'Notebook',
   IMPRESSORA: 'Impressora',
   ROTEADOR: 'Roteador',
   SWITCH: 'Switch',
   SERVIDOR: 'Servidor',
+  ESTABILIZADOR: 'Estabilizador',
 };
 
 export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
@@ -42,6 +45,7 @@ export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
   EM_USO: 'Em Uso',
   MANUTENCAO: 'Manutenção',
   BAIXADO: 'Baixado',
+  EXCLUIDO: 'Excluído',
 };
 
 export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, { bg: string; text: string; border: string }> = {
@@ -51,6 +55,7 @@ export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, { bg: string; text
   INDISPONIVEL: { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200'     },
   MANUTENCAO:   { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'   },
   BAIXADO:      { bg: 'bg-gray-100',   text: 'text-gray-500',    border: 'border-gray-200'    },
+  EXCLUIDO:     { bg: 'bg-slate-100',  text: 'text-slate-600',   border: 'border-slate-200'   },
 };
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
@@ -252,6 +257,7 @@ export interface DashboardStatsDTO {
   totalAtivos: number;
   totalManutencao: number;
   totalProvisorio: number;
+  totalExcluido: number;
   totalGeral: number;
 }
 

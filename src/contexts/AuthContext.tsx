@@ -27,7 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         validateStatus: (s) => s < 500,
       });
       if (response.status === 200) {
-        setUser(response.data);
+        const me = response.data;
+        if (me.enabled === false) {
+          setUser(null);
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/maintenance') {
+            window.location.replace('/login');
+          }
+          return;
+        }
+        setUser(me);
       } else {
         setUser(null);
       }

@@ -42,6 +42,11 @@ export const equipmentApi = {
   getStatuses: () =>
     api.get<EquipmentStatus[]>('/equipments/statuses').then(r => r.data),
 
+  // Opcional: lista de marcas de equipamentos exposta pelo backend.
+  // Endpoint sugerido: GET /equipments/brands → string[]
+  getBrands: () =>
+    api.get<string[]>('/equipments/brands').then(r => r.data),
+
   getKpis: () =>
     api.get<DashboardStatsDTO>('/equipments/stats/kpi').then(r => r.data),
 

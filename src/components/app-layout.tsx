@@ -21,6 +21,7 @@ import { useAuth, usePermissions } from "../contexts/AuthContext";
 import { useSessionTimeout } from "../hooks/useSessionTimeout";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { SessionTimeoutModal } from "./session-timeout-modal";
+import { ConfirmDialog } from "./confirm-dialog";
 import { toast } from "sonner";
 import { USER_ROLE_LABELS } from "../types";
 
@@ -59,6 +60,7 @@ function formatMaintenanceDate(dateStr: string): string {
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -263,7 +265,7 @@ export function AppLayout() {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={() => setLogoutConfirmOpen(true)}
             className="flex items-center gap-2 text-[13px] text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg transition-colors"
             style={{ fontWeight: 500 }}
           >
@@ -345,6 +347,21 @@ export function AppLayout() {
         secondsLeft={secondsLeft}
         onContinue={resetTimer}
         onLogout={handleLogout}
+      />
+
+      {/* Confirmação de logout manual */}
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        variant="warning"
+        title="Sair do sistema?"
+        message="Você será desconectado da sua sessão atual. Deseja realmente sair do sistema?"
+        confirmLabel="Sair"
+        cancelLabel="Cancelar"
+        onConfirm={() => {
+          setLogoutConfirmOpen(false);
+          handleLogout();
+        }}
+        onCancel={() => setLogoutConfirmOpen(false)}
       />
     </div>
   );

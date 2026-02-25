@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, X, Users, Shield, Mail, User, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Users, Shield, Mail, User, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight, Check } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../api/user.api";
-import type { UserResponse, UserRole, CreateUserRequest, UpdateUserRequest } from "../types";
+import type { UserResponse, UserRole, CreateUserRequest, UpdateUserRequest, PagedResponse } from "../types";
 import { USER_ROLE_LABELS } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
+import { ConfirmDialog } from "./confirm-dialog";
 
 /** Hierarquia: DEV > ADMIN > USER > VIEWER. Apenas roles acima podem editar/excluir. ADMIN não edita/exclui DEV. */
 function canEditUser(actorRole: UserRole | undefined, targetUser: UserResponse): boolean {
@@ -245,10 +246,16 @@ const PAGE_SIZE = 10;
 
 export function UsuariosPage() {
   const queryClient = useQueryClient();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const [page, setPage] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<UserResponse | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [justToggledId, setJustToggledId] = useState<string | null>(null);
+  const [justToggledNewEnabled, setJustToggledNewEnabled] = useState<boolean | null>(null);
+  /** Estado efetivo de ativo/inativo por id (evita refetch sobrescrever ícone e garante diálogo correto ao reativar) */
+  const [enabledOverride, setEnabledOverride] = useState<Record<string, boolean>>({});
 
   const { data, isLoading } = useQuery({
     queryKey: ["users", page],
@@ -268,6 +275,8 @@ export function UsuariosPage() {
     },
   });
 
+  // PUT usa sempre as credenciais do usuário logado (cookie). O backend identifica o ator pelo
+  // token; quem recebe 401 depois é só o usuário desativado, quando ele usar o token dele.
   const toggleMutation = useMutation({
     mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
       userApi.update(id, { enabled }),
@@ -276,6 +285,47 @@ export function UsuariosPage() {
     },
     onError: () => toast.error("Erro ao alterar status do usuário."),
   });
+
+  const confirmToggle = () => {
+    if (!toggleTarget) return;
+    const id = toggleTarget.id;
+    const newEnabled = !getEnabled(toggleTarget);
+    setToggleTarget(null);
+    setTogglingId(id);
+    toggleMutation.mutate(
+      { id, enabled: newEnabled },
+      {
+        onSuccess: () => {
+          toast.success(newEnabled ? "Usuário ativado com sucesso." : "Usuário desativado com sucesso.");
+          setJustToggledId(id);
+          setJustToggledNewEnabled(newEnabled);
+          setEnabledOverride((prev) => ({ ...prev, [id]: newEnabled }));
+          queryClient.setQueryData<PagedResponse<UserResponse>>(
+            ["users", page],
+            (old) => {
+              if (!old?.content) return old;
+              return {
+                ...old,
+                content: old.content.map((u: UserResponse) =>
+                  u.id === id ? { ...u, enabled: newEnabled } : u
+                ),
+              };
+            }
+          );
+          setTimeout(() => {
+            setJustToggledId(null);
+            setJustToggledNewEnabled(null);
+          }, 1800);
+          if (!newEnabled && currentUser?.id === id) {
+            logout().then(() => {
+              window.location.replace("/login");
+            });
+          }
+        },
+        onSettled: () => setTogglingId(null),
+      }
+    );
+  };
 
   const handleSaved = () => {
     queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -290,6 +340,8 @@ export function UsuariosPage() {
 
   const users = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
+
+  const getEnabled = (u: UserResponse) => enabledOverride[u.id] ?? u.enabled ?? true;
 
   return (
     <div className="p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -359,11 +411,26 @@ export function UsuariosPage() {
                     <td className="px-4 md:px-6 py-3.5">
                       {canEditUser(currentUser?.role, u) ? (
                         <button
-                          onClick={() => toggleMutation.mutate({ id: u.id, enabled: !(u.enabled ?? true) })}
-                          className="flex items-center gap-1.5 transition-colors"
-                          title={u.enabled !== false ? "Desativar" : "Ativar"}
+                          onClick={() => setToggleTarget(u)}
+                          disabled={togglingId === u.id}
+                          className="flex items-center gap-1.5 transition-all min-w-[90px]"
+                          title={getEnabled(u) ? "Desativar" : "Ativar"}
                         >
-                          {u.enabled !== false ? (
+                          {togglingId === u.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 border-2 border-sky-300 border-t-primary rounded-full animate-spin" />
+                              <span className="text-[12px] text-gray-500" style={{ fontWeight: 500 }}>Alterando...</span>
+                            </div>
+                          ) : justToggledId === u.id ? (
+                            <div className="flex items-center gap-1.5 text-emerald-600 animate-pulse">
+                              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100">
+                                <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                              </span>
+                              <span className="text-[12px]" style={{ fontWeight: 500 }}>
+                                {justToggledNewEnabled ? "Ativo" : "Inativo"}
+                              </span>
+                            </div>
+                          ) : getEnabled(u) ? (
                             <>
                               <ToggleRight className="w-5 h-5 text-emerald-500" />
                               <span className="text-[12px] text-emerald-600" style={{ fontWeight: 500 }}>Ativo</span>
@@ -377,7 +444,7 @@ export function UsuariosPage() {
                         </button>
                       ) : (
                         <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                          {u.enabled !== false ? "Ativo" : "Inativo"}
+                          {getEnabled(u) ? "Ativo" : "Inativo"}
                         </span>
                       )}
                     </td>
@@ -439,6 +506,25 @@ export function UsuariosPage() {
         onSaved={handleSaved}
         user={editingUser}
         currentUserRole={currentUser?.role}
+      />
+
+      {/* Confirmação ao ativar/desativar usuário */}
+      <ConfirmDialog
+        open={!!toggleTarget}
+        variant="warning"
+        title={toggleTarget ? (getEnabled(toggleTarget) ? "Desativar usuário?" : "Ativar usuário?") : ""}
+        message={
+          toggleTarget
+            ? getEnabled(toggleTarget)
+              ? `O usuário "${toggleTarget.fullName}" (${toggleTarget.username}) não poderá mais acessar o sistema até que seja ativado novamente.`
+              : `O usuário "${toggleTarget.fullName}" (${toggleTarget.username}) voltará a poder acessar o sistema.`
+            : ""
+        }
+        confirmLabel={toggleTarget ? (getEnabled(toggleTarget) ? "Desativar" : "Ativar") : "Confirmar"}
+        cancelLabel="Cancelar"
+        loading={toggleMutation.isPending}
+        onConfirm={confirmToggle}
+        onCancel={() => setToggleTarget(null)}
       />
     </div>
   );

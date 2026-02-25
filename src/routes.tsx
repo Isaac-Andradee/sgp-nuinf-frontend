@@ -12,6 +12,7 @@ import { PerfilPage } from "./components/perfil-page";
 import { AuditoriaPage } from "./components/auditoria-page";
 import { DevPage } from "./components/dev-page";
 import { MaintenancePage } from "./components/maintenance-page";
+import { ContaDesativadaPage } from "./components/conta-desativada-page";
 import { AuthGuard } from "./guards/AuthGuard";
 import { RoleGuard } from "./guards/RoleGuard";
 import { PublicGuard } from "./guards/PublicGuard";
@@ -44,6 +45,9 @@ function Public({ children }: { children: React.ReactNode }) {
 export const router = createBrowserRouter([
   // Tela de manutenção: acessível por qualquer um, sem autenticação
   { path: "/maintenance", Component: MaintenancePage },
+
+  // Conta desativada: usuário foi barrado com 401; chama POST /logout para limpar cookie
+  { path: "/conta-desativada", Component: ContaDesativadaPage },
 
   // Rota de setup: acessível apenas quando banco está vazio
   { path: "/setup", Component: SetupPage },
