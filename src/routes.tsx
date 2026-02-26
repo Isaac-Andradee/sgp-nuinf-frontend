@@ -13,6 +13,7 @@ import { AuditoriaPage } from "./components/auditoria-page";
 import { DevPage } from "./components/dev-page";
 import { MaintenancePage } from "./components/maintenance-page";
 import { ContaDesativadaPage } from "./components/conta-desativada-page";
+import { HistoricoDefeitosPage } from "./components/historico-defeitos-page";
 import { AuthGuard } from "./guards/AuthGuard";
 import { RoleGuard } from "./guards/RoleGuard";
 import { PublicGuard } from "./guards/PublicGuard";
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Auth><DashboardPage /></Auth> },
       { path: "movimentacao", element: <Auth><MovimentacaoPage /></Auth> },
+      { path: "historico-defeitos", element: <Auth><HistoricoDefeitosPage /></Auth> },
       { path: "setores", element: <Auth><SetoresPage /></Auth> },
       { path: "usuarios",  element: <AdminOnly><UsuariosPage /></AdminOnly>  },
       { path: "auditoria", element: <AdminOnly><AuditoriaPage /></AdminOnly> },

@@ -1,6 +1,13 @@
-import { X, Tag, Hash, Building2, User, Wifi, Calendar, Package } from "lucide-react";
-import type { EquipmentResponseDTO } from "../types";
-import { EQUIPMENT_TYPE_LABELS, EQUIPMENT_STATUS_LABELS, EQUIPMENT_STATUS_COLORS } from "../types";
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router";
+import { X, Tag, Hash, Building2, User, Wifi, Calendar, Package, AlertCircle, Plus, CheckCircle, History, Pencil } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { equipmentApi } from "../api/equipment.api";
+import type { EquipmentResponseDTO, DefectResponse } from "../types";
+import { EQUIPMENT_STATUS_LABELS, EQUIPMENT_STATUS_COLORS, normalizeEquipmentStatus, getEquipmentTypeLabel, isEquipmentWithoutAsset } from "../types";
+import { toast } from "sonner";
+
+const DEFECT_DESCRIPTION_MAX = 500;
 
 interface Props {
   open: boolean;
@@ -10,15 +17,115 @@ interface Props {
 }
 
 function getTypeIcon() {
-  // Ícone simples para o modal
   return Package;
 }
 
+function formatDefectDate(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Props) {
+  const queryClient = useQueryClient();
+  const [defectFormOpen, setDefectFormOpen] = useState(false);
+  const [defectDescription, setDefectDescription] = useState("");
+  const [editingDefectId, setEditingDefectId] = useState<string | null>(null);
+  const [editingDefectDescription, setEditingDefectDescription] = useState("");
+
+  useEffect(() => {
+    if (!open || !equipment) {
+      setDefectFormOpen(false);
+      setDefectDescription("");
+      setEditingDefectId(null);
+      setEditingDefectDescription("");
+    }
+  }, [open, equipment?.id]);
+
+  const { data: defectsRaw = [], isLoading: defectsLoading } = useQuery({
+    queryKey: ["equipment-defects-open", equipment?.id],
+    queryFn: () => equipmentApi.getDefects(equipment!.id, { status: "ABERTO" }),
+    enabled: open && !!equipment?.id,
+  });
+
+  const defects = useMemo(
+    () => defectsRaw.filter((d: DefectResponse) => d.status === "ABERTO"),
+    [defectsRaw]
+  );
+
+  const createDefectMutation = useMutation({
+    mutationFn: (desc: string) =>
+      equipmentApi.createDefect(equipment!.id, { description: desc.trim() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-defects-open", equipment?.id] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-paged"] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-filter"] });
+      setDefectDescription("");
+      setDefectFormOpen(false);
+      toast.success("Defeito registrado.");
+    },
+    onError: (err: unknown) => {
+      const axErr = err as { response?: { data?: { message?: string } } };
+      toast.error(axErr?.response?.data?.message ?? "Erro ao registrar defeito.");
+    },
+  });
+
+  const updateDefectMutation = useMutation({
+    mutationFn: ({ defectId, description }: { defectId: string; description: string }) =>
+      equipmentApi.updateDefect(equipment!.id, defectId, { description: description.trim() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-defects-open", equipment?.id] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-paged"] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-filter"] });
+      setEditingDefectId(null);
+      setEditingDefectDescription("");
+      toast.success("Defeito atualizado.");
+    },
+    onError: (err: unknown) => {
+      const axErr = err as { response?: { data?: { message?: string } } };
+      toast.error(axErr?.response?.data?.message ?? "Erro ao atualizar defeito.");
+    },
+  });
+
+  const resolveDefectMutation = useMutation({
+    mutationFn: (defectId: string) =>
+      equipmentApi.resolveDefect(equipment!.id, defectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipment-defects-open", equipment?.id] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-paged"] });
+      queryClient.invalidateQueries({ queryKey: ["equipments-filter"] });
+      setEditingDefectId(null);
+      toast.success("Defeito marcado como resolvido.");
+    },
+    onError: (err: unknown) => {
+      const axErr = err as { response?: { data?: { message?: string } } };
+      toast.error(axErr?.response?.data?.message ?? "Erro ao marcar defeito como resolvido.");
+    },
+  });
+
+  const handleSubmitDefect = () => {
+    const trimmed = defectDescription.trim();
+    if (!trimmed) {
+      toast.error("Informe a descrição do defeito.");
+      return;
+    }
+    if (trimmed.length > DEFECT_DESCRIPTION_MAX) {
+      toast.error(`Descrição deve ter no máximo ${DEFECT_DESCRIPTION_MAX} caracteres.`);
+      return;
+    }
+    createDefectMutation.mutate(trimmed);
+  };
+
   if (!open || !equipment) return null;
 
-  const hasAsset = equipment.assetNumber && !equipment.assetNumber.startsWith("PROV-");
-  const statusColors = EQUIPMENT_STATUS_COLORS[equipment.status];
+  const hasAsset = !isEquipmentWithoutAsset(equipment.assetNumber, equipment.id);
+  const safeStatus = normalizeEquipmentStatus(equipment.status) ?? (equipment.status && equipment.status in EQUIPMENT_STATUS_COLORS ? equipment.status : null);
+  const statusColors = safeStatus ? EQUIPMENT_STATUS_COLORS[safeStatus] : { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200" };
+  const statusLabel = safeStatus ? EQUIPMENT_STATUS_LABELS[safeStatus] : (equipment.status ?? "—");
   const TypeIcon = getTypeIcon();
 
   return (
@@ -42,7 +149,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                 Detalhes do Equipamento
               </h3>
               <p className="text-white/70 text-[12px] mt-0.5">
-                {EQUIPMENT_TYPE_LABELS[equipment.type]} · {equipment.brand}
+                {getEquipmentTypeLabel(equipment.type)} · {equipment.brand}
               </p>
             </div>
           </div>
@@ -104,7 +211,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                 Tipo
               </label>
               <p className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
-                {EQUIPMENT_TYPE_LABELS[equipment.type]}
+                {getEquipmentTypeLabel(equipment.type)}
               </p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
@@ -123,7 +230,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                 className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] border ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}
                 style={{ fontWeight: 600 }}
               >
-                {EQUIPMENT_STATUS_LABELS[equipment.status]}
+                {statusLabel}
               </span>
             </div>
           </div>
@@ -188,6 +295,154 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
               </div>
             </div>
           )}
+
+          {/* Defeitos em aberto (histórico resolvido fica em /historico-defeitos) */}
+          <div className="bg-amber-50/80 rounded-xl p-4 border border-amber-100">
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <label className="text-[11px] text-amber-800 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                  Defeitos em aberto
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={`/historico-defeitos?equipmentId=${equipment.id}`}
+                  className="flex items-center gap-1.5 text-[12px] text-sky-600 hover:text-sky-800 px-2.5 py-1.5 rounded-lg hover:bg-sky-50 transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  Ver histórico
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setDefectFormOpen((v) => !v)}
+                  className="flex items-center gap-1.5 text-[12px] text-amber-700 hover:text-amber-900 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {defectFormOpen ? "Cancelar" : "Registrar defeito"}
+                </button>
+              </div>
+            </div>
+
+            {defectFormOpen && (
+              <div className="mb-4 p-3 bg-white rounded-lg border border-amber-200">
+                <textarea
+                  value={defectDescription}
+                  onChange={(e) => setDefectDescription(e.target.value.slice(0, DEFECT_DESCRIPTION_MAX))}
+                  placeholder="Descreva o defeito (obrigatório, máx. 500 caracteres)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[11px] text-gray-400">
+                    {defectDescription.length}/{DEFECT_DESCRIPTION_MAX}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSubmitDefect}
+                    disabled={createDefectMutation.isPending || !defectDescription.trim()}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-[12px] rounded-lg transition-colors"
+                    style={{ fontWeight: 600 }}
+                  >
+                    {createDefectMutation.isPending ? "Salvando..." : "Salvar defeito"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {defectsLoading ? (
+              <p className="text-[13px] text-gray-500">Carregando...</p>
+            ) : defects.length === 0 ? (
+              <p className="text-[13px] text-gray-500">Nenhum defeito em aberto.</p>
+            ) : (
+              <ul className="space-y-3">
+                {defects.map((d: DefectResponse) => (
+                  <li
+                    key={d.id}
+                    className="bg-white rounded-lg border border-amber-200/80 p-3 text-[13px]"
+                  >
+                    {editingDefectId === d.id ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={editingDefectDescription}
+                          onChange={(e) => setEditingDefectDescription(e.target.value.slice(0, DEFECT_DESCRIPTION_MAX))}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-gray-400">
+                            {editingDefectDescription.length}/{DEFECT_DESCRIPTION_MAX}
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingDefectId(null); setEditingDefectDescription(""); }}
+                              className="px-2.5 py-1.5 text-[12px] text-gray-500 hover:bg-gray-100 rounded-lg"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const trimmed = editingDefectDescription.trim();
+                                if (!trimmed) {
+                                  toast.error("Informe a descrição.");
+                                  return;
+                                }
+                                if (trimmed.length > DEFECT_DESCRIPTION_MAX) {
+                                  toast.error(`Máximo ${DEFECT_DESCRIPTION_MAX} caracteres.`);
+                                  return;
+                                }
+                                updateDefectMutation.mutate({ defectId: d.id, description: trimmed });
+                              }}
+                              disabled={updateDefectMutation.isPending || !editingDefectDescription.trim()}
+                              className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-[12px] rounded-lg"
+                              style={{ fontWeight: 600 }}
+                            >
+                              {updateDefectMutation.isPending ? "Salvando..." : "Salvar"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-gray-800 mb-1.5">{d.description}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+                          <span>{formatDefectDate(d.reportedAt)}</span>
+                          {d.reportedBy && <span>por {d.reportedBy}</span>}
+                        </div>
+                        <div className="mt-2 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingDefectId(d.id);
+                              setEditingDefectDescription(d.description);
+                            }}
+                            disabled={resolveDefectMutation.isPending || !!editingDefectId}
+                            className="flex items-center gap-1 text-[12px] text-sky-600 hover:text-sky-700 font-medium disabled:opacity-50"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => resolveDefectMutation.mutate(d.id)}
+                            disabled={resolveDefectMutation.isPending || !!editingDefectId}
+                            className="flex items-center gap-1 text-[12px] text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Marcar como resolvido
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {/* Data de Cadastro */}
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">

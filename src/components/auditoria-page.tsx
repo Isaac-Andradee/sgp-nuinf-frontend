@@ -32,6 +32,9 @@ const ACTION_TYPE_OPTIONS: { value: AuditActionType | ""; label: string }[] = [
   { value: "USER_UPDATE",        label: "Atualização de Usuário"    },
   { value: "USER_DELETE",        label: "Exclusão de Usuário"       },
 ];
+const ACTION_TYPE_OPTIONS_SORTED = [...ACTION_TYPE_OPTIONS].sort((a, b) =>
+  a.label === "Todos os eventos" ? -1 : b.label === "Todos os eventos" ? 1 : a.label.localeCompare(b.label)
+);
 
 function formatDate(iso: string): string {
   try {
@@ -160,7 +163,7 @@ export function AuditoriaPage() {
                   onChange={(e) => { setActionType(e.target.value as AuditActionType | ""); setPage(0); }}
                   className="w-full pl-10 pr-8 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-white appearance-none"
                 >
-                  {ACTION_TYPE_OPTIONS.map((opt) => (
+                  {ACTION_TYPE_OPTIONS_SORTED.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>

@@ -7,6 +7,7 @@ import {
   EQUIPMENT_TYPE_LABELS,
   EQUIPMENT_STATUS_LABELS,
   shouldShowUserField,
+  isEquipmentWithoutAsset,
 } from "../types";
 import { toast } from "sonner";
 
@@ -85,7 +86,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         ipValue = ip;
       }
       
-      const assetNum = equipment.assetNumber.startsWith("PROV-") || equipment.assetNumber.startsWith("TEMP-") ? "" : equipment.assetNumber;
+      const assetNum = isEquipmentWithoutAsset(equipment.assetNumber, equipment.id) ? "" : equipment.assetNumber;
       setForm({
         assetNumber: assetNum,
         serialNumber: equipment.serialNumber ?? "",
@@ -96,10 +97,10 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         sectorId: equipment.currentSector.id,
         equipmentUser: equipment.equipmentUser ?? "",
         hostname: equipment.hostname ?? "",
-        ipAddress: ipValue,
-        networkMode,
+        ipAddress: ipValue ?? "",
+        networkMode: networkMode ?? "",
       });
-      setNoAsset(equipment.assetNumber.startsWith("PROV-") || equipment.assetNumber.startsWith("TEMP-"));
+      setNoAsset(isEquipmentWithoutAsset(equipment.assetNumber, equipment.id));
       setAssetInputValue(assetNum.replace(/\D/g, ""));
     } else {
       setForm({ ...emptyForm, sectorId: sectors[0]?.id ?? "" });
@@ -250,12 +251,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               type="checkbox"
               checked={noAsset}
               onChange={(e) => {
-                const checked = e.target.checked;
-                setNoAsset(checked);
-                if (checked) {
-                  setAssetInputValue("");
-                  handleChange("assetNumber", "");
-                }
+                setNoAsset(e.target.checked);
+                // Não limpa o valor digitado: ao desmarcar, o patrimônio volta a aparecer
               }}
               className="mt-0.5 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
             />
@@ -331,11 +328,13 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 }`}
               >
                 <option value="">Selecione a marca</option>
-                {brands.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
+                {[...(brands ?? [])]
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
               </select>
             ) : (
               <input
@@ -375,9 +374,11 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 onChange={(e) => handleChange("type", e.target.value as EquipmentType)}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
               >
-                {EQUIPMENT_TYPES.map((t) => (
-                  <option key={t} value={t}>{EQUIPMENT_TYPE_LABELS[t]}</option>
-                ))}
+                {[...EQUIPMENT_TYPES]
+                  .sort((a, b) => EQUIPMENT_TYPE_LABELS[a].localeCompare(EQUIPMENT_TYPE_LABELS[b]))
+                  .map((t) => (
+                    <option key={t} value={t}>{EQUIPMENT_TYPE_LABELS[t]}</option>
+                  ))}
               </select>
             </div>
             <div>
@@ -389,11 +390,13 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 onChange={(e) => handleChange("sectorId", e.target.value)}
                 className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.sectorId ? "border-red-400" : "border-gray-200"}`}
               >
-                {sectors.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.acronym} - {s.fullName}
-                  </option>
-                ))}
+                {[...sectors]
+                  .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.acronym} - {s.fullName}
+                    </option>
+                  ))}
               </select>
               {errors.sectorId && <p className="text-[11px] text-red-500 mt-1">{errors.sectorId}</p>}
             </div>
@@ -409,9 +412,11 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               onChange={(e) => handleChange("status", e.target.value as EquipmentStatus)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
             >
-              {EQUIPMENT_STATUSES.map((s) => (
-                <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
-              ))}
+              {[...EQUIPMENT_STATUSES]
+                .sort((a, b) => EQUIPMENT_STATUS_LABELS[a].localeCompare(EQUIPMENT_STATUS_LABELS[b]))
+                .map((s) => (
+                  <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
+                ))}
             </select>
           </div>
 
@@ -440,7 +445,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <input
-                    value={form.hostname}
+                    value={form.hostname ?? ""}
                     onChange={(e) => handleChange("hostname", e.target.value)}
                     placeholder="Hostname"
                     className={`w-full px-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-white transition-all ${errors.hostname ? "border-red-400" : "border-sky-200"}`}
@@ -449,7 +454,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 </div>
                 <div className="space-y-2">
                   <select
-                    value={form.networkMode}
+                    value={form.networkMode ?? ""}
                     onChange={(e) => {
                       const mode = e.target.value as FormState["networkMode"];
                       handleChange("networkMode", mode);
@@ -474,7 +479,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                       </span>
                       <input
                         type="text"
-                        value={form.ipAddress}
+                        value={form.ipAddress ?? ""}
                         onChange={(e) => {
                           const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
                           handleChange("ipAddress", digits);

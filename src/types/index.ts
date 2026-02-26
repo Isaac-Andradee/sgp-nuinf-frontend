@@ -76,6 +76,31 @@ export function shouldShowUserField(status: EquipmentStatus): boolean {
   return status === 'EM_USO' || status === 'PROVISORIO';
 }
 
+/** Normaliza valor vindo da API (ex.: "Disponivel", "EM USO") para chave do enum. */
+export function normalizeEquipmentStatus(s: string | undefined): EquipmentStatus | null {
+  if (s == null || s === '') return null;
+  const key = String(s).toUpperCase().replace(/\s+/g, '_') as EquipmentStatus;
+  return key in EQUIPMENT_STATUS_COLORS ? key : null;
+}
+
+/** Retorna label do tipo ou valor bruto/fallback para exibição segura. */
+export function getEquipmentTypeLabel(type: EquipmentType | string | undefined): string {
+  if (type == null || type === '') return '—';
+  const label = (EQUIPMENT_TYPE_LABELS as Record<string, string>)[type];
+  return label ?? String(type);
+}
+
+/**
+ * Indica se o equipamento é "sem patrimônio" (provisório).
+ * Backend pode devolver: PROV-xxxxx (legado), TEMP- (só na criação), ou UUID = id do equipamento.
+ */
+export function isEquipmentWithoutAsset(assetNumber: string | undefined, equipmentId?: string): boolean {
+  if (assetNumber == null || assetNumber === '') return true;
+  if (assetNumber.startsWith('PROV-') || assetNumber.startsWith('TEMP-')) return true;
+  if (equipmentId && assetNumber === equipmentId) return true; // UUID = patrimônio provisório (novo backend)
+  return false;
+}
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export interface LoginRequest {
@@ -211,6 +236,24 @@ export interface EquipmentResponseDTO {
   equipmentUser?: string;
   currentSector: SectorResponseDTO;
   createdAt: string;
+  /** Indica se o equipamento possui ao menos um defeito com status ABERTO (backend preenche na listagem) */
+  hasOpenDefect?: boolean;
+}
+
+/** Texto curto para input/select (patrimônio · tipo marca · setor). */
+export function getEquipmentShortLabel(e: EquipmentResponseDTO): string {
+  const pat = isEquipmentWithoutAsset(e.assetNumber, e.id) ? 'Sem patrimônio' : e.assetNumber;
+  return `${pat} · ${getEquipmentTypeLabel(e.type)} ${e.brand} · ${e.currentSector.acronym}`;
+}
+
+/** Linha secundária para dropdown: serial, hostname, IP, status. */
+export function getEquipmentDropdownSecondary(e: EquipmentResponseDTO): string {
+  const parts: string[] = [];
+  if (e.serialNumber) parts.push(`S/N ${e.serialNumber}`);
+  if (e.hostname) parts.push(e.hostname);
+  if (e.ipAddress) parts.push(e.ipAddress);
+  parts.push(EQUIPMENT_STATUS_LABELS[e.status]);
+  return parts.join(' · ');
 }
 
 export interface CreateEquipmentDTO {
@@ -245,8 +288,29 @@ export interface SwapEquipmentDTO {
   outgoingEquipmentId: string;
   incomingEquipmentId: string;
   isDefective: boolean;
-  /** Descrição do defeito — será anexada à descrição existente do equipamento */
+  /**
+   * Descrição do defeito. O backend DEVE criar apenas um registro na tabela de defeitos
+   * e NÃO deve anexar este texto ao campo description do equipamento (evitar mistura de contexto).
+   */
   defectDescription?: string;
+}
+
+// ─── Defeitos de equipamento ──────────────────────────────────────────────────
+
+export type DefectStatus = "ABERTO" | "RESOLVIDO";
+
+export interface DefectResponse {
+  id: string;
+  equipmentId: string;
+  description: string;
+  reportedAt: string;
+  reportedBy: string | null;
+  resolvedAt: string | null;
+  status: DefectStatus;
+}
+
+export interface CreateDefectRequest {
+  description: string;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────

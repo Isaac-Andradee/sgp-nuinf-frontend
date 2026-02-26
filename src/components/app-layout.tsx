@@ -16,6 +16,7 @@ import {
   WifiOff,
   ShieldCheck,
   Terminal,
+  History,
 } from "lucide-react";
 import { useAuth, usePermissions } from "../contexts/AuthContext";
 import { useSessionTimeout } from "../hooks/useSessionTimeout";
@@ -32,6 +33,7 @@ const MAINTENANCE_DATE_STR = import.meta.env.VITE_MAINTENANCE_DATE ?? "";
 const baseNavItems = [
   { id: "dashboard", label: "Visao Geral",   title: "Visão Geral",    icon: LayoutDashboard, path: "/" },
   { id: "movimentacao", label: "Movimentacao", title: "Movimentação", icon: ArrowLeftRight,  path: "/movimentacao" },
+  { id: "historico-defeitos", label: "Historico Defeitos", title: "Histórico de Defeitos", icon: History, path: "/historico-defeitos" },
   { id: "setores",  label: "Setores",      title: "Setores",          icon: Building2,       path: "/setores" },
 ];
 

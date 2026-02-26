@@ -185,9 +185,11 @@ function UserModal({
               {...field("role")}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
             >
-              {assignableRoles.map((r) => (
-                <option key={r} value={r}>{USER_ROLE_LABELS[r]}</option>
-              ))}
+              {[...assignableRoles]
+                .sort((a, b) => USER_ROLE_LABELS[a].localeCompare(USER_ROLE_LABELS[b]))
+                .map((r) => (
+                  <option key={r} value={r}>{USER_ROLE_LABELS[r]}</option>
+                ))}
             </select>
           </div>
           <div>

@@ -10,22 +10,45 @@ import type {
   PagedResponse,
   EquipmentType,
   EquipmentStatus,
+  DefectResponse,
+  CreateDefectRequest,
 } from '../types';
+
+/**
+ * Normaliza apenas os nomes das chaves da API para o DTO do front.
+ * Aceita type/status ou alternativas (equipmentType, equipment_type, tipo, situacao).
+ * Não inventa valores: só mapeia o que vier do backend.
+ */
+function normalizeEquipmentItem(raw: unknown): EquipmentResponseDTO {
+  const o = raw as Record<string, unknown>;
+  const type = (o.type ?? o.equipmentType ?? o.equipment_type ?? o.tipo) as EquipmentType | undefined;
+  const status = (o.status ?? o.equipmentStatus ?? o.equipment_status ?? o.situacao) as EquipmentStatus | undefined;
+  return {
+    ...o,
+    ...(type !== undefined && { type }),
+    ...(status !== undefined && { status }),
+  } as EquipmentResponseDTO;
+}
 
 export const equipmentApi = {
   list: (page = 0, size = 20, sortBy = 'createdAt', sortDirection = 'DESC') =>
     api.get<PagedResponse<EquipmentResponseDTO>>('/equipments', {
       params: { page, size, sortBy, sortDirection },
-    }).then(r => r.data),
+    }).then(r => ({
+      ...r.data,
+      content: (r.data.content ?? []).map((item) => normalizeEquipmentItem(item)),
+    })),
 
   filter: (filters: EquipmentFilterDTO) =>
-    api.post<EquipmentResponseDTO[]>('/equipments/filter', filters).then(r => r.data),
+    api.post<EquipmentResponseDTO[]>('/equipments/filter', filters).then(r =>
+      (Array.isArray(r.data) ? r.data : []).map((item) => normalizeEquipmentItem(item))
+    ),
 
   create: (data: CreateEquipmentDTO) =>
-    api.post<EquipmentResponseDTO>('/equipments', data).then(r => r.data),
+    api.post<EquipmentResponseDTO>('/equipments', data).then(r => normalizeEquipmentItem(r.data)),
 
   update: (id: string, data: CreateEquipmentDTO) =>
-    api.put<EquipmentResponseDTO>(`/equipments/${id}`, data).then(r => r.data),
+    api.put<EquipmentResponseDTO>(`/equipments/${id}`, data).then(r => normalizeEquipmentItem(r.data)),
 
   remove: (id: string) =>
     api.delete(`/equipments/${id}`).then(r => r.data),
@@ -52,4 +75,17 @@ export const equipmentApi = {
 
   getSectorStats: () =>
     api.get<SectorMetricDTO[]>('/equipments/stats/sectors').then(r => r.data),
+
+  // Defeitos de equipamento
+  getDefects: (equipmentId: string, params?: { status?: 'ABERTO' | 'RESOLVIDO'; year?: number; month?: number }) =>
+    api.get<DefectResponse[]>(`/equipments/${equipmentId}/defects`, { params }).then(r => r.data),
+
+  createDefect: (equipmentId: string, data: CreateDefectRequest) =>
+    api.post<DefectResponse>(`/equipments/${equipmentId}/defects`, data).then(r => r.data),
+
+  updateDefect: (equipmentId: string, defectId: string, data: CreateDefectRequest) =>
+    api.put<DefectResponse>(`/equipments/${equipmentId}/defects/${defectId}`, data).then(r => r.data),
+
+  resolveDefect: (equipmentId: string, defectId: string) =>
+    api.patch<DefectResponse>(`/equipments/${equipmentId}/defects/${defectId}/resolve`).then(r => r.data),
 };

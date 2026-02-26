@@ -33,6 +33,9 @@ import {
   EQUIPMENT_TYPE_LABELS,
   EQUIPMENT_STATUS_LABELS,
   EQUIPMENT_STATUS_COLORS,
+  normalizeEquipmentStatus,
+  getEquipmentTypeLabel,
+  isEquipmentWithoutAsset,
 } from "../types";
 import { EquipmentModal } from "./equipment-modal";
 import { EquipmentDetailsModal } from "./equipment-details-modal";
@@ -68,15 +71,20 @@ const EQUIPMENT_STATUS_TOOLTIPS: Record<EquipmentStatus, string> = {
   EXCLUIDO:     "Excluído — oculto da tabela geral, mantido apenas para histórico",
 };
 
-function StatusBadge({ status }: { status: EquipmentStatus }) {
-  const colors = EQUIPMENT_STATUS_COLORS[status];
+const DEFAULT_STATUS_STYLE = { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200" };
+
+function StatusBadge({ status }: { status: EquipmentStatus | string | undefined }) {
+  const safeStatus = normalizeEquipmentStatus(status) ?? (status && (status as EquipmentStatus) in EQUIPMENT_STATUS_COLORS ? (status as EquipmentStatus) : null);
+  const colors = safeStatus ? EQUIPMENT_STATUS_COLORS[safeStatus] : DEFAULT_STATUS_STYLE;
+  const label = safeStatus ? EQUIPMENT_STATUS_LABELS[safeStatus] : (status ?? "—");
+  const title = safeStatus ? EQUIPMENT_STATUS_TOOLTIPS[safeStatus] : String(status ?? "");
   return (
     <span
-      title={EQUIPMENT_STATUS_TOOLTIPS[status]}
+      title={title}
       className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] border ${colors.bg} ${colors.text} ${colors.border}`}
       style={{ fontWeight: 600 }}
     >
-      {EQUIPMENT_STATUS_LABELS[status]}
+      {label}
     </span>
   );
 }
@@ -230,9 +238,25 @@ export function DashboardPage() {
 
   // Data to render
   const isLoading = hasFilters ? filteredLoading : pagedLoading;
-  const displayItems: EquipmentResponseDTO[] = hasFilters
-    ? (filteredList ?? []).slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
+
+  // Equipamentos com defeito em aberto têm prioridade de visualização (vem primeiro na lista)
+  const prioritizeDefects = (list: EquipmentResponseDTO[] = []) =>
+    [...list].sort((a, b) => {
+      const aHas = !!a.hasOpenDefect;
+      const bHas = !!b.hasOpenDefect;
+      if (aHas === bHas) return 0;
+      return aHas ? -1 : 1;
+    });
+
+  const baseList: EquipmentResponseDTO[] = hasFilters
+    ? (filteredList ?? [])
     : (pagedData?.content ?? []);
+
+  const sortedList = prioritizeDefects(baseList);
+
+  const displayItems: EquipmentResponseDTO[] = hasFilters
+    ? sortedList.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
+    : sortedList;
 
   const totalElements = hasFilters
     ? (filteredList?.length ?? 0)
@@ -555,11 +579,13 @@ export function DashboardPage() {
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
               >
                 <option value="">Todos os Setores</option>
-                {(sectors ?? []).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.acronym} - {s.fullName}
-                  </option>
-                ))}
+                {[...(sectors ?? [])]
+                  .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.acronym} - {s.fullName}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="col-span-1 md:col-span-2">
@@ -572,9 +598,11 @@ export function DashboardPage() {
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
               >
                 <option value="">Todos</option>
-                {EQUIPMENT_TYPES.map((t) => (
-                  <option key={t} value={t}>{EQUIPMENT_TYPE_LABELS[t]}</option>
-                ))}
+                {[...EQUIPMENT_TYPES]
+                  .sort((a, b) => EQUIPMENT_TYPE_LABELS[a].localeCompare(EQUIPMENT_TYPE_LABELS[b]))
+                  .map((t) => (
+                    <option key={t} value={t}>{EQUIPMENT_TYPE_LABELS[t]}</option>
+                  ))}
               </select>
             </div>
             <div className="col-span-1 md:col-span-2">
@@ -587,9 +615,11 @@ export function DashboardPage() {
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
               >
                 <option value="">Todos</option>
-                {EQUIPMENT_STATUSES.map((s) => (
-                  <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
-                ))}
+                {[...EQUIPMENT_STATUSES]
+                  .sort((a, b) => EQUIPMENT_STATUS_LABELS[a].localeCompare(EQUIPMENT_STATUS_LABELS[b]))
+                  .map((s) => (
+                    <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
+                  ))}
               </select>
             </div>
             <div className="col-span-1 md:col-span-1 flex items-end">
@@ -668,12 +698,14 @@ export function DashboardPage() {
               ) : (
                 displayItems.map((equip) => {
                   const TypeIcon = getTypeIcon(equip.type);
-                  const hasAsset = equip.assetNumber && !equip.assetNumber.startsWith("PROV-");
+                  const hasAsset = !isEquipmentWithoutAsset(equip.assetNumber, equip.id);
+                  const hasDefect = !!equip.hasOpenDefect;
                   return (
                     <tr
                       key={equip.id}
-                      className="hover:bg-sky-50/30 transition-colors duration-150 cursor-pointer"
+                      className={`transition-colors duration-150 cursor-pointer ${hasDefect ? "row-defect-pulse hover:bg-amber-100/80" : "hover:bg-sky-50/30"}`}
                       onClick={() => setViewingEquipment(equip)}
+                      title={hasDefect ? "Possui defeito em aberto" : undefined}
                     >
                       <td className="px-4 md:px-6 py-3.5 whitespace-nowrap">
                         <span
@@ -693,7 +725,7 @@ export function DashboardPage() {
                           </div>
                           <div>
                             <p className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
-                              {EQUIPMENT_TYPE_LABELS[equip.type]}
+                              {getEquipmentTypeLabel(equip.type)}
                             </p>
                             <p className="text-[11px] text-muted-foreground">{equip.brand}</p>
                           </div>
@@ -827,7 +859,7 @@ export function DashboardPage() {
         title="Marcar como Excluído"
         message={
           deleteTarget
-            ? `O equipamento será marcado como excluído e sairá da listagem geral.\nAdministradores ainda poderão visualizá-lo no card "Excluídos".\n\n${deleteTarget.assetNumber || deleteTarget.serialNumber || "sem identificação"} — ${deleteTarget.brand}`
+            ? `O equipamento será marcado como excluído e sairá da listagem geral.\nAdministradores ainda poderão visualizá-lo no card "Excluídos".\n\n${isEquipmentWithoutAsset(deleteTarget.assetNumber, deleteTarget.id) ? "Sem patrimônio" : deleteTarget.assetNumber}${deleteTarget.serialNumber ? ` · ${deleteTarget.serialNumber}` : ""} — ${deleteTarget.brand}`
             : ""
         }
         requirePhrase="CONFIRMAR"

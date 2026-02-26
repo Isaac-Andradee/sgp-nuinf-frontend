@@ -17,6 +17,9 @@ import {
   EQUIPMENT_TYPE_LABELS,
   EQUIPMENT_STATUS_LABELS,
   shouldShowUserField,
+  isEquipmentWithoutAsset,
+  getEquipmentShortLabel,
+  getEquipmentDropdownSecondary,
 } from "../types";
 import { toast } from "sonner";
 
@@ -76,16 +79,16 @@ function SearchDropdown({
             onClick={() => onSelect(item)}
             className="w-full text-left px-4 py-3 hover:bg-sky-50 transition-colors border-b border-gray-50 last:border-0"
           >
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>
-                  {EQUIPMENT_TYPE_LABELS[item.type]} - {item.brand}
+            <div className="flex justify-between items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <span className="text-[13px] text-foreground block" style={{ fontWeight: 600 }}>
+                  {getEquipmentShortLabel(item)}
                 </span>
-                <span className="text-[11px] text-muted-foreground ml-2">
-                  {item.assetNumber.startsWith("PROV-") ? item.serialNumber || "Sem etiqueta" : item.assetNumber}
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  {getEquipmentDropdownSecondary(item)}
                 </span>
               </div>
-              <span className="text-[11px] text-primary bg-sky-50 px-2 py-0.5 rounded" style={{ fontWeight: 500 }}>
+              <span className="text-[11px] text-primary bg-sky-50 px-2 py-0.5 rounded shrink-0" style={{ fontWeight: 500 }}>
                 {item.currentSector.acronym}
               </span>
             </div>
@@ -111,31 +114,29 @@ function SelectedItemCard({
     green: { border: "border-emerald-400", bg: "bg-emerald-50", text: "text-emerald-800", badge: "bg-emerald-100 text-emerald-700" },
   };
   const s = styles[variant];
-  const hasAsset = !item.assetNumber.startsWith("PROV-");
-
   return (
     <div className={`${s.bg} border ${s.border} rounded-xl p-4 mt-3`}>
       <div className="flex justify-between items-start">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className={`text-[13px] ${s.text}`} style={{ fontWeight: 600 }}>
-            {EQUIPMENT_TYPE_LABELS[item.type]} - {item.brand}
+            {getEquipmentShortLabel(item)}
           </p>
           <p className="text-[12px] text-muted-foreground mt-0.5">
-            {hasAsset ? item.assetNumber : "Sem etiqueta"} | {item.serialNumber || "-"}
+            {getEquipmentDropdownSecondary(item)}
           </p>
         </div>
-        <button onClick={onClear} className="text-gray-400 hover:text-rose-500 p-1 rounded transition-colors">
+        <button onClick={onClear} className="text-gray-400 hover:text-rose-500 p-1 rounded transition-colors shrink-0">
           <X className="w-4 h-4" />
         </button>
       </div>
-      <div className="mt-3 flex items-center gap-2 text-[12px] text-muted-foreground bg-white/60 p-2.5 rounded-lg">
+      <div className="mt-3 flex items-center gap-2 text-[12px] text-muted-foreground bg-white/60 p-2.5 rounded-lg flex-wrap">
         <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-        <span style={{ fontWeight: 500 }}>Origem:</span>
+        <span style={{ fontWeight: 500 }}>Setor:</span>
         <span className={`${s.badge} px-2 py-0.5 rounded text-[11px]`} style={{ fontWeight: 600 }}>
           {item.currentSector.acronym}
         </span>
         {item.equipmentUser && (
-          <span className="text-[11px] text-gray-400 ml-1">({item.equipmentUser})</span>
+          <span className="text-[11px] text-gray-500">· Responsável: {item.equipmentUser}</span>
         )}
       </div>
     </div>
@@ -195,11 +196,14 @@ export function MovimentacaoPage() {
 
   const swapMutation = useMutation({
     mutationFn: equipmentApi.swap,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success("Substituição realizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["equipments-paged"] });
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
       queryClient.invalidateQueries({ queryKey: ["sector-stats"] });
+      if (variables.isDefective && variables.outgoingEquipmentId) {
+        queryClient.invalidateQueries({ queryKey: ["equipment-defects-open", variables.outgoingEquipmentId] });
+      }
       setSwapOutSelected(null);
       setSwapInSelected(null);
       setSwapOutQuery("");
@@ -314,11 +318,13 @@ export function MovimentacaoPage() {
                     className="w-full px-3 py-3 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
                   >
                     <option value="">Selecione o setor...</option>
-                    {(sectors ?? []).map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.acronym} - {s.fullName}
-                      </option>
-                    ))}
+                    {[...(sectors ?? [])]
+                      .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.acronym} - {s.fullName}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 <div>
@@ -330,9 +336,11 @@ export function MovimentacaoPage() {
                     onChange={(e) => setMoveDestStatus(e.target.value as EquipmentStatus)}
                     className="w-full px-3 py-3 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
                   >
-                    {TRANSFER_STATUSES.map((s) => (
-                      <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
-                    ))}
+                    {[...TRANSFER_STATUSES]
+                      .sort((a, b) => EQUIPMENT_STATUS_LABELS[a].localeCompare(EQUIPMENT_STATUS_LABELS[b]))
+                      .map((s) => (
+                        <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
+                      ))}
                   </select>
                 </div>
               </div>

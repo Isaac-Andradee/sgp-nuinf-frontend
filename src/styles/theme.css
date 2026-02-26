@@ -244,3 +244,12 @@
     background: rgba(0, 0, 0, 0.22);
   }
 }
+
+/* Linha com defeito em aberto: fundo pulsando (indicador tipo notificação) */
+@keyframes row-defect-pulse {
+  0%, 100% { background-color: rgb(255 247 237); }
+  50% { background-color: rgb(254 243 199); }
+}
+.row-defect-pulse {
+  animation: row-defect-pulse 2s ease-in-out infinite;
+}
