@@ -240,12 +240,15 @@ export function DashboardPage() {
   const isLoading = hasFilters ? filteredLoading : pagedLoading;
 
   // Equipamentos com defeito em aberto têm prioridade de visualização (vem primeiro na lista)
+  // Dentro de cada grupo (com/sem defeito), ordenar dos mais recentes para os mais antigos (createdAt DESC)
   const prioritizeDefects = (list: EquipmentResponseDTO[] = []) =>
     [...list].sort((a, b) => {
       const aHas = !!a.hasOpenDefect;
       const bHas = !!b.hasOpenDefect;
-      if (aHas === bHas) return 0;
-      return aHas ? -1 : 1;
+      if (aHas !== bHas) return aHas ? -1 : 1;
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
+      return bTime - aTime;
     });
 
   const baseList: EquipmentResponseDTO[] = hasFilters
