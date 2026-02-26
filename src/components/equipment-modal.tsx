@@ -19,7 +19,7 @@ interface Props {
   sectors: SectorResponseDTO[];
 }
 
-const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "MOUSE", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR"];
+const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "MOUSE", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "OUTROS"];
 const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
 type FormState = {
@@ -72,7 +72,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       const ip = equipment.ipAddress ?? "";
       let networkMode: FormState["networkMode"] = "";
       let ipValue = "";
-      
+
       if (ip === "DHCP") {
         networkMode = "DHCP";
         ipValue = "DHCP";
@@ -85,7 +85,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         networkMode = "";
         ipValue = ip;
       }
-      
+
       const assetNum = isEquipmentWithoutAsset(equipment.assetNumber, equipment.id) ? "" : equipment.assetNumber;
       setForm({
         assetNumber: assetNum,
@@ -185,8 +185,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     const normalizedAsset = noAsset
       ? "TEMP-"
       : rawAssetDigits
-      ? rawAssetDigits.padStart(7, "0")
-      : "";
+        ? rawAssetDigits.padStart(7, "0")
+        : "";
 
     // Trata IP conforme modo de rede
     let ipToSend: string | undefined;
@@ -285,9 +285,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 }}
                 disabled={noAsset}
                 placeholder={noAsset ? "Sem Patrimonio" : "Digite 7 dígitos (ex: 1234567)"}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all disabled:bg-gray-100 disabled:text-gray-400 ${
-                  errors.assetNumber ? "border-red-400" : "border-gray-200"
-                }`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all disabled:bg-gray-100 disabled:text-gray-400 ${errors.assetNumber ? "border-red-400" : "border-gray-200"
+                  }`}
               />
               {!noAsset && assetInputValue.length > 0 && assetInputValue.length < 7 && (
                 <p className="text-[11px] text-gray-400 mt-1">
@@ -323,9 +322,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               <select
                 value={form.brand}
                 onChange={(e) => handleChange("brand", e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${
-                  errors.brand ? "border-red-400" : "border-gray-200"
-                }`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.brand ? "border-red-400" : "border-gray-200"
+                  }`}
               >
                 <option value="">Selecione a marca</option>
                 {[...(brands ?? [])]
@@ -341,9 +339,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 value={form.brand}
                 onChange={(e) => handleChange("brand", e.target.value)}
                 placeholder="Ex: Dell, Lenovo, HP..."
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${
-                  errors.brand ? "border-red-400" : "border-gray-200"
-                }`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.brand ? "border-red-400" : "border-gray-200"
+                  }`}
               />
             )}
             {errors.brand && <p className="text-[11px] text-red-500 mt-1">{errors.brand}</p>}
@@ -486,9 +483,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                         }}
                         placeholder="xx"
                         maxLength={3}
-                        className={`w-full pl-[100px] pr-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-white transition-all ${
-                          errors.ipAddress ? "border-red-400" : "border-sky-200"
-                        }`}
+                        className={`w-full pl-[100px] pr-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-white transition-all ${errors.ipAddress ? "border-red-400" : "border-sky-200"
+                          }`}
                       />
                     </div>
                   ) : form.networkMode === "DHCP" ? (

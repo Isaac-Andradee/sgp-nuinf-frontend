@@ -25,6 +25,7 @@ import {
   Filter,
   Archive,
   Zap,
+  Box,
 } from "lucide-react";
 import { equipmentApi } from "../api/equipment.api";
 import { sectorApi } from "../api/sector.api";
@@ -57,18 +58,19 @@ function getTypeIcon(tipo: EquipmentType) {
     case "MOUSE": return Mouse;
     case "TECLADO": return Keyboard;
     case "ESTABILIZADOR": return Zap;
+    case "OUTROS": return Box;
     default: return HardDrive;
   }
 }
 
 const EQUIPMENT_STATUS_TOOLTIPS: Record<EquipmentStatus, string> = {
-  DISPONIVEL:   "Disponível — não alocado, pronto para uso",
+  DISPONIVEL: "Disponível — não alocado, pronto para uso",
   INDISPONIVEL: "Indisponível — aguardando destinação ou descarte",
-  PROVISORIO:   "Provisório — sem etiqueta patrimonial, pendente de regularização",
-  EM_USO:       "Em Uso — alocado a um usuário ou setor",
-  MANUTENCAO:   "Em Manutenção — enviado para reparo",
-  BAIXADO:      "Baixado — descartado definitivamente do patrimônio",
-  EXCLUIDO:     "Excluído — oculto da tabela geral, mantido apenas para histórico",
+  PROVISORIO: "Provisório — sem etiqueta patrimonial, pendente de regularização",
+  EM_USO: "Em Uso — alocado a um usuário ou setor",
+  MANUTENCAO: "Em Manutenção — enviado para reparo",
+  BAIXADO: "Baixado — descartado definitivamente do patrimônio",
+  EXCLUIDO: "Excluído — oculto da tabela geral, mantido apenas para histórico",
 };
 
 const DEFAULT_STATUS_STYLE = { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200" };
@@ -309,16 +311,16 @@ export function DashboardPage() {
     // Card "Excluídos" — visível apenas para ADMIN/DEV
     ...(isAdmin
       ? [
-          {
-            label: "Excluidos",
-            value: kpis?.totalExcluido ?? "-",
-            icon: Archive,
-            color: "text-slate-600",
-            bg: "bg-slate-50",
-            border: "border-slate-500",
-            status: "EXCLUIDO" as EquipmentStatus,
-          },
-        ]
+        {
+          label: "Excluidos",
+          value: kpis?.totalExcluido ?? "-",
+          icon: Archive,
+          color: "text-slate-600",
+          bg: "bg-slate-50",
+          border: "border-slate-500",
+          status: "EXCLUIDO" as EquipmentStatus,
+        },
+      ]
       : []),
   ];
 
@@ -340,11 +342,10 @@ export function DashboardPage() {
         <div className="flex gap-2.5 w-full md:w-auto">
           <button
             onClick={() => setShowStats(!showStats)}
-            className={`flex-1 md:flex-none text-[13px] px-4 py-2.5 rounded-lg border transition-all duration-200 flex items-center justify-center gap-2 ${
-              showStats
+            className={`flex-1 md:flex-none text-[13px] px-4 py-2.5 rounded-lg border transition-all duration-200 flex items-center justify-center gap-2 ${showStats
                 ? "bg-primary text-white border-primary"
                 : "bg-white text-primary border-gray-200 hover:border-primary/30 hover:bg-primary/5"
-            }`}
+              }`}
             style={{ fontWeight: 500 }}
           >
             <BarChart3 className="w-4 h-4" />
@@ -386,9 +387,8 @@ export function DashboardPage() {
                   setFilterTipo("");
                 }
               }}
-              className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
-                isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-              }`}
+              className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                }`}
             >
               <div>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
@@ -442,11 +442,10 @@ export function DashboardPage() {
                   <button
                     key={s.acronym}
                     onClick={() => handleSectorClick(s)}
-                    className={`text-left rounded-xl p-3 border transition-all duration-200 ${
-                      isSelected
+                    className={`text-left rounded-xl p-3 border transition-all duration-200 ${isSelected
                         ? "bg-sky-50 border-sky-400 shadow-sm ring-2 ring-sky-400/20"
                         : "bg-gray-50 border-gray-100 hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-sm"
-                    }`}
+                      }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span
@@ -512,21 +511,19 @@ export function DashboardPage() {
                       <button
                         key={tipo}
                         onClick={() => handleTypeClick(tipo)}
-                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-[13px] transition-all duration-150 ${
-                          isActive
+                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-[13px] transition-all duration-150 ${isActive
                             ? "bg-primary text-white border-primary shadow-md shadow-sky-600/15"
                             : "bg-gray-50 text-gray-700 border-gray-200 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
-                        }`}
+                          }`}
                         style={{ fontWeight: isActive ? 600 : 500 }}
                       >
                         <TypeIcon className={`w-4 h-4 ${isActive ? "text-white/80" : "text-gray-400"}`} />
                         <span>{EQUIPMENT_TYPE_LABELS[tipo]}</span>
                         <span
-                          className={`ml-1 text-[12px] px-1.5 py-0.5 rounded-full ${
-                            isActive
+                          className={`ml-1 text-[12px] px-1.5 py-0.5 rounded-full ${isActive
                               ? "bg-white/20 text-white"
                               : "bg-gray-200 text-gray-600"
-                          }`}
+                            }`}
                           style={{ fontWeight: 700 }}
                         >
                           {qtd}
@@ -646,12 +643,11 @@ export function DashboardPage() {
                 {["Patrimonio", "Serial", "Item / Marca", "Descricao", "Rede", "Setor", "Resp.", "Status", "Acoes"].map((h, i) => (
                   <th
                     key={h}
-                    className={`px-4 md:px-6 py-3.5 text-[10px] text-gray-400 uppercase tracking-wider whitespace-nowrap ${
-                      i === 3 ? "hidden lg:table-cell" :
-                      i === 4 ? "hidden xl:table-cell" :
-                      i === 6 ? "hidden md:table-cell" :
-                      i === 8 ? "text-right" : ""
-                    }`}
+                    className={`px-4 md:px-6 py-3.5 text-[10px] text-gray-400 uppercase tracking-wider whitespace-nowrap ${i === 3 ? "hidden lg:table-cell" :
+                        i === 4 ? "hidden xl:table-cell" :
+                          i === 6 ? "hidden md:table-cell" :
+                            i === 8 ? "text-right" : ""
+                      }`}
                     style={{ fontWeight: 700 }}
                   >
                     {h}
@@ -809,11 +805,10 @@ export function DashboardPage() {
                 <button
                   key={i}
                   onClick={() => setCurrentPage(i)}
-                  className={`w-8 h-8 rounded-lg text-[13px] transition-all duration-150 ${
-                    currentPage === i
+                  className={`w-8 h-8 rounded-lg text-[13px] transition-all duration-150 ${currentPage === i
                       ? "bg-primary text-white shadow-sm"
                       : "text-gray-500 hover:bg-gray-100"
-                  }`}
+                    }`}
                   style={{ fontWeight: currentPage === i ? 600 : 400 }}
                 >
                   {i + 1}
@@ -848,9 +843,9 @@ export function DashboardPage() {
         onEdit={
           canEditEquipment && viewingEquipment
             ? () => {
-                setViewingEquipment(null);
-                handleEdit(viewingEquipment);
-              }
+              setViewingEquipment(null);
+              handleEdit(viewingEquipment);
+            }
             : undefined
         }
       />

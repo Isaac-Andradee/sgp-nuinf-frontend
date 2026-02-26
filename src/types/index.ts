@@ -12,7 +12,8 @@ export type EquipmentType =
   | 'ROTEADOR'
   | 'SWITCH'
   | 'SERVIDOR'
-  | 'ESTABILIZADOR';
+  | 'ESTABILIZADOR'
+  | 'OUTROS';
 
 export type EquipmentStatus =
   | 'DISPONIVEL'
@@ -36,6 +37,7 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
   SWITCH: 'Switch',
   SERVIDOR: 'Servidor',
   ESTABILIZADOR: 'Estabilizador',
+  OUTROS: 'Outros',
 };
 
 export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
@@ -49,27 +51,27 @@ export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
 };
 
 export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, { bg: string; text: string; border: string }> = {
-  DISPONIVEL:   { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  EM_USO:       { bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200'     },
-  PROVISORIO:   { bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200'  },
-  INDISPONIVEL: { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200'     },
-  MANUTENCAO:   { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'   },
-  BAIXADO:      { bg: 'bg-gray-100',   text: 'text-gray-500',    border: 'border-gray-200'    },
-  EXCLUIDO:     { bg: 'bg-slate-100',  text: 'text-slate-600',   border: 'border-slate-200'   },
+  DISPONIVEL: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  EM_USO: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  PROVISORIO: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  INDISPONIVEL: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  MANUTENCAO: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  BAIXADO: { bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200' },
+  EXCLUIDO: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
 };
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
-  ADMIN:  'Administrador',
-  USER:   'Usuário',
+  ADMIN: 'Administrador',
+  USER: 'Usuário',
   VIEWER: 'Visualizador',
-  DEV:    'Desenvolvedor',
+  DEV: 'Desenvolvedor',
 };
 
 export const USER_ROLE_COLORS: Record<UserRole, { bg: string; text: string; border: string }> = {
-  ADMIN:  { bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200'    },
-  USER:   { bg: 'bg-gray-50',   text: 'text-gray-600',   border: 'border-gray-200'   },
-  VIEWER: { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200'  },
-  DEV:    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+  ADMIN: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  USER: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+  VIEWER: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  DEV: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
 };
 
 export function shouldShowUserField(status: EquipmentStatus): boolean {
@@ -151,29 +153,29 @@ export type AuditActionType =
   | 'LOGOUT';
 
 export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
-  EQUIPMENT_CREATE:   'Cadastro de Equipamento',
-  EQUIPMENT_UPDATE:   'Atualização de Equipamento',
-  EQUIPMENT_DELETE:   'Exclusão de Equipamento',
-  EQUIPMENT_SWAP:     'Substituição de Equipamento',
+  EQUIPMENT_CREATE: 'Cadastro de Equipamento',
+  EQUIPMENT_UPDATE: 'Atualização de Equipamento',
+  EQUIPMENT_DELETE: 'Exclusão de Equipamento',
+  EQUIPMENT_SWAP: 'Substituição de Equipamento',
   EQUIPMENT_TRANSFER: 'Transferência de Equipamento',
-  USER_CREATE:        'Criação de Usuário',
-  USER_UPDATE:        'Atualização de Usuário',
-  USER_DELETE:        'Exclusão de Usuário',
-  LOGIN:              'Login',
-  LOGOUT:             'Logout',
+  USER_CREATE: 'Criação de Usuário',
+  USER_UPDATE: 'Atualização de Usuário',
+  USER_DELETE: 'Exclusão de Usuário',
+  LOGIN: 'Login',
+  LOGOUT: 'Logout',
 };
 
 export const AUDIT_ACTION_COLORS: Record<AuditActionType, { bg: string; text: string; dot: string }> = {
-  EQUIPMENT_CREATE:   { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  EQUIPMENT_UPDATE:   { bg: 'bg-sky-50',     text: 'text-sky-700',     dot: 'bg-sky-500'     },
-  EQUIPMENT_DELETE:   { bg: 'bg-rose-50',    text: 'text-rose-700',    dot: 'bg-rose-500'    },
-  EQUIPMENT_SWAP:     { bg: 'bg-violet-50',  text: 'text-violet-700',  dot: 'bg-violet-500'  },
-  EQUIPMENT_TRANSFER: { bg: 'bg-indigo-50',  text: 'text-indigo-700',  dot: 'bg-indigo-500'  },
-  USER_CREATE:        { bg: 'bg-teal-50',    text: 'text-teal-700',    dot: 'bg-teal-500'    },
-  USER_UPDATE:        { bg: 'bg-cyan-50',    text: 'text-cyan-700',    dot: 'bg-cyan-500'    },
-  USER_DELETE:        { bg: 'bg-red-50',     text: 'text-red-700',     dot: 'bg-red-500'     },
-  LOGIN:              { bg: 'bg-gray-50',    text: 'text-gray-600',    dot: 'bg-gray-400'    },
-  LOGOUT:             { bg: 'bg-gray-50',    text: 'text-gray-500',    dot: 'bg-gray-300'    },
+  EQUIPMENT_CREATE: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  EQUIPMENT_UPDATE: { bg: 'bg-sky-50', text: 'text-sky-700', dot: 'bg-sky-500' },
+  EQUIPMENT_DELETE: { bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' },
+  EQUIPMENT_SWAP: { bg: 'bg-violet-50', text: 'text-violet-700', dot: 'bg-violet-500' },
+  EQUIPMENT_TRANSFER: { bg: 'bg-indigo-50', text: 'text-indigo-700', dot: 'bg-indigo-500' },
+  USER_CREATE: { bg: 'bg-teal-50', text: 'text-teal-700', dot: 'bg-teal-500' },
+  USER_UPDATE: { bg: 'bg-cyan-50', text: 'text-cyan-700', dot: 'bg-cyan-500' },
+  USER_DELETE: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
+  LOGIN: { bg: 'bg-gray-50', text: 'text-gray-600', dot: 'bg-gray-400' },
+  LOGOUT: { bg: 'bg-gray-50', text: 'text-gray-500', dot: 'bg-gray-300' },
 };
 
 export interface AuditLog {
