@@ -13,6 +13,8 @@ export type EquipmentType =
   | 'SWITCH'
   | 'SERVIDOR'
   | 'ESTABILIZADOR'
+  | 'NOBREAK'
+  | 'ROTULADORA'
   | 'OUTROS';
 
 export type EquipmentStatus =
@@ -37,6 +39,8 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
   SWITCH: 'Switch',
   SERVIDOR: 'Servidor',
   ESTABILIZADOR: 'Estabilizador',
+  NOBREAK: 'NoBreak',
+  ROTULADORA: 'Rotuladora',
   OUTROS: 'Outros',
 };
 

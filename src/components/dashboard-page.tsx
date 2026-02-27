@@ -26,6 +26,7 @@ import {
   Archive,
   Zap,
   Box,
+  Tag,
 } from "lucide-react";
 import { equipmentApi } from "../api/equipment.api";
 import { sectorApi } from "../api/sector.api";
@@ -44,7 +45,7 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { usePermissions } from "../contexts/AuthContext";
 import { toast } from "sonner";
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 function getTypeIcon(tipo: EquipmentType) {
   switch (tipo) {
@@ -58,6 +59,8 @@ function getTypeIcon(tipo: EquipmentType) {
     case "MOUSE": return Mouse;
     case "TECLADO": return Keyboard;
     case "ESTABILIZADOR": return Zap;
+    case "NOBREAK": return Zap;
+    case "ROTULADORA": return Tag;
     case "OUTROS": return Box;
     default: return HardDrive;
   }
@@ -297,7 +300,7 @@ export function DashboardPage() {
     { label: "Inserviveis", value: kpis?.kpiEquipamentos?.totalInservivel ?? "-", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-500", status: "INSERVIVEL" as EquipmentStatus },
   ];
 
-  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "OUTROS"];
+  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "OUTROS"];
   const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
   return (
@@ -316,8 +319,8 @@ export function DashboardPage() {
           <button
             onClick={() => setShowStats(!showStats)}
             className={`flex-1 md:flex-none text-[13px] px-4 py-2.5 rounded-lg border transition-all duration-200 flex items-center justify-center gap-2 ${showStats
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-primary border-gray-200 hover:border-primary/30 hover:bg-primary/5"
+              ? "bg-primary text-white border-primary"
+              : "bg-white text-primary border-gray-200 hover:border-primary/30 hover:bg-primary/5"
               }`}
             style={{ fontWeight: 500 }}
           >
@@ -506,8 +509,8 @@ export function DashboardPage() {
                     key={s.acronym}
                     onClick={() => handleSectorClick(s)}
                     className={`text-left rounded-xl p-3 border transition-all duration-200 ${isSelected
-                        ? "bg-sky-50 border-sky-400 shadow-sm ring-2 ring-sky-400/20"
-                        : "bg-gray-50 border-gray-100 hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-sm"
+                      ? "bg-sky-50 border-sky-400 shadow-sm ring-2 ring-sky-400/20"
+                      : "bg-gray-50 border-gray-100 hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-sm"
                       }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -575,8 +578,8 @@ export function DashboardPage() {
                         key={tipo}
                         onClick={() => handleTypeClick(tipo)}
                         className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-[13px] transition-all duration-150 ${isActive
-                            ? "bg-primary text-white border-primary shadow-md shadow-sky-600/15"
-                            : "bg-gray-50 text-gray-700 border-gray-200 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                          ? "bg-primary text-white border-primary shadow-md shadow-sky-600/15"
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
                           }`}
                         style={{ fontWeight: isActive ? 600 : 500 }}
                       >
@@ -584,8 +587,8 @@ export function DashboardPage() {
                         <span>{EQUIPMENT_TYPE_LABELS[tipo]}</span>
                         <span
                           className={`ml-1 text-[12px] px-1.5 py-0.5 rounded-full ${isActive
-                              ? "bg-white/20 text-white"
-                              : "bg-gray-200 text-gray-600"
+                            ? "bg-white/20 text-white"
+                            : "bg-gray-200 text-gray-600"
                             }`}
                           style={{ fontWeight: 700 }}
                         >
@@ -707,9 +710,9 @@ export function DashboardPage() {
                   <th
                     key={h}
                     className={`px-4 md:px-6 py-3.5 text-[10px] text-gray-400 uppercase tracking-wider whitespace-nowrap ${i === 3 ? "hidden lg:table-cell" :
-                        i === 4 ? "hidden xl:table-cell" :
-                          i === 6 ? "hidden md:table-cell" :
-                            i === 8 ? "text-right" : ""
+                      i === 4 ? "hidden xl:table-cell" :
+                        i === 6 ? "hidden md:table-cell" :
+                          i === 8 ? "text-right" : ""
                       }`}
                     style={{ fontWeight: 700 }}
                   >
@@ -869,8 +872,8 @@ export function DashboardPage() {
                   key={i}
                   onClick={() => setCurrentPage(i)}
                   className={`w-8 h-8 rounded-lg text-[13px] transition-all duration-150 ${currentPage === i
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-500 hover:bg-gray-100"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-100"
                     }`}
                   style={{ fontWeight: currentPage === i ? 600 : 400 }}
                 >
