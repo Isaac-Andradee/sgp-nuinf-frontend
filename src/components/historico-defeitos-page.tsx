@@ -164,15 +164,15 @@ export function HistoricoDefeitosPage() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="p-4 border-b border-border bg-muted/50">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 relative" ref={dropdownRef}>
-              <label className="block text-[11px] text-gray-500 mb-1" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>
                 Equipamento
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -180,13 +180,13 @@ export function HistoricoDefeitosPage() {
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => setDropdownOpen(true)}
                   placeholder="Busque por patrimônio, serial, hostname ou IP..."
-                  className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-border focus:border-sky-400 text-[13px] outline-none bg-card"
                 />
               </div>
               {dropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-card shadow-lg max-h-60 overflow-y-auto">
                   {sortedFilteredEquipments.length === 0 ? (
-                    <div className="px-3 py-4 text-[13px] text-gray-500 text-center">
+                    <div className="px-3 py-4 text-[13px] text-muted-foreground text-center">
                       Nenhum equipamento encontrado
                     </div>
                   ) : (
@@ -196,10 +196,10 @@ export function HistoricoDefeitosPage() {
                           <button
                             type="button"
                             onClick={() => handleSelectEquipment(e)}
-                            className={`w-full text-left px-3 py-2.5 text-[13px] hover:bg-sky-50 transition-colors ${e.id === equipmentId ? "bg-sky-50 text-sky-800" : "text-gray-800"}`}
+                            className={`w-full text-left px-3 py-2.5 text-[13px] hover:bg-muted transition-colors ${e.id === equipmentId ? "bg-sky-50 dark:bg-sky-950/50 text-sky-800 dark:text-sky-200" : "text-foreground"}`}
                           >
                             <span className="block font-medium">{getEquipmentShortLabel(e)}</span>
-                            <span className="block text-[11px] text-gray-500 mt-0.5">{getEquipmentDropdownSecondary(e)}</span>
+                            <span className="block text-[11px] text-muted-foreground mt-0.5">{getEquipmentDropdownSecondary(e)}</span>
                           </button>
                         </li>
                       ))}
@@ -209,13 +209,13 @@ export function HistoricoDefeitosPage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] text-gray-500 mb-1" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>
                 Ano
               </label>
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
+                className="w-full px-3 py-2.5 rounded-lg border border-border focus:border-sky-400 text-[13px] outline-none bg-card"
               >
                 {yearsForSelector.map((y) => (
                   <option key={y} value={y}>{y}</option>
@@ -223,13 +223,13 @@ export function HistoricoDefeitosPage() {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] text-gray-500 mb-1" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>
                 Mês
               </label>
               <select
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
+                className="w-full px-3 py-2.5 rounded-lg border border-border focus:border-sky-400 text-[13px] outline-none bg-card"
               >
                 {MONTHS.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -242,8 +242,8 @@ export function HistoricoDefeitosPage() {
         <div className="p-4">
           {!equipmentId ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <History className="w-12 h-12 text-gray-300 mb-3" />
-              <p className="text-[14px] text-gray-500" style={{ fontWeight: 500 }}>
+              <History className="w-12 h-12 text-muted-foreground mb-3" />
+              <p className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
                 Selecione um equipamento, ano e mês para ver o histórico de defeitos resolvidos.
               </p>
             </div>
@@ -253,12 +253,12 @@ export function HistoricoDefeitosPage() {
             </div>
           ) : defects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle className="w-12 h-12 text-gray-300 mb-3" />
-              <p className="text-[14px] text-gray-500" style={{ fontWeight: 500 }}>
+              <CheckCircle className="w-12 h-12 text-muted-foreground mb-3" />
+              <p className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
                 Nenhum defeito resolvido neste período.
               </p>
               {selectedEquipment && (
-                <p className="text-[12px] text-gray-400 mt-1">
+                <p className="text-[12px] text-muted-foreground mt-1">
                   {isEquipmentWithoutAsset(selectedEquipment.assetNumber, selectedEquipment.id)
                     ? "Sem patrimônio"
                     : selectedEquipment.assetNumber}{" "}
@@ -269,7 +269,7 @@ export function HistoricoDefeitosPage() {
           ) : (
             <>
               {selectedEquipment && (
-                <div className="flex items-center gap-2 mb-4 p-3 bg-sky-50 rounded-lg border border-sky-100">
+                <div className="flex items-center gap-2 mb-4 p-3 bg-sky-50 dark:bg-sky-950/40 rounded-lg border border-sky-100 dark:border-sky-800">
                   <Package className="w-4 h-4 text-sky-600" />
                   <span className="text-[13px] text-sky-800" style={{ fontWeight: 600 }}>
                     {isEquipmentWithoutAsset(selectedEquipment.assetNumber, selectedEquipment.id)
@@ -285,25 +285,25 @@ export function HistoricoDefeitosPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[13px]">
                   <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-4 py-3 text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
+                    <tr className="border-b border-border bg-muted">
+                      <th className="px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 700 }}>
                         Descrição
                       </th>
-                      <th className="px-4 py-3 text-[10px] text-gray-400 uppercase tracking-wider hidden sm:table-cell" style={{ fontWeight: 700 }}>
+                      <th className="px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-wider hidden sm:table-cell" style={{ fontWeight: 700 }}>
                         Registrado em
                       </th>
-                      <th className="px-4 py-3 text-[10px] text-gray-400 uppercase tracking-wider hidden md:table-cell" style={{ fontWeight: 700 }}>
+                      <th className="px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-wider hidden md:table-cell" style={{ fontWeight: 700 }}>
                         Por
                       </th>
-                      <th className="px-4 py-3 text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
+                      <th className="px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 700 }}>
                         Resolvido em
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {defects.map((d: DefectResponse) => (
-                      <tr key={d.id} className="hover:bg-sky-50/30 transition-colors">
-                        <td className="px-4 py-3.5 text-gray-800">{d.description}</td>
+                      <tr key={d.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3.5 text-foreground">{d.description}</td>
                         <td className="px-4 py-3.5 text-muted-foreground hidden sm:table-cell">
                           {formatDefectDate(d.reportedAt)}
                         </td>

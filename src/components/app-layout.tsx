@@ -23,6 +23,7 @@ import { useSessionTimeout } from "../hooks/useSessionTimeout";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { SessionTimeoutModal } from "./session-timeout-modal";
 import { ConfirmDialog } from "./confirm-dialog";
+import { ThemeSwitcher } from "./theme-switcher";
 import { toast } from "sonner";
 import { USER_ROLE_LABELS } from "../types";
 
@@ -140,29 +141,29 @@ export function AppLayout() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — usa variáveis de tema (sidebar) para light/dark */}
       <aside
-        className={`fixed inset-y-0 left-0 w-[260px] bg-[#0c4a6e] text-white flex flex-col z-30 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 w-[260px] bg-sidebar text-sidebar-foreground flex flex-col z-30 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
-        <div className="h-16 flex items-center justify-between px-5 border-b border-white/10">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-sky-400/20 flex items-center justify-center">
-              <Network className="w-4 h-4 text-sky-400" />
+            <div className="w-8 h-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center">
+              <Network className="w-4 h-4 text-sidebar-primary" />
             </div>
             <div>
               <span className="text-[15px] tracking-tight" style={{ fontWeight: 600 }}>SGP</span>
-              <span className="text-sky-400 text-[11px] ml-1.5" style={{ fontWeight: 500 }}>NUINF</span>
+              <span className="text-sidebar-primary text-[11px] ml-1.5" style={{ fontWeight: 500 }}>NUINF</span>
             </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white/60 hover:text-white p-1 rounded">
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground p-1 rounded">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <p className="text-[10px] uppercase tracking-widest text-sky-300/50 px-3 mb-2" style={{ fontWeight: 600 }}>
+          <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50 px-3 mb-2" style={{ fontWeight: 600 }}>
             Menu Principal
           </p>
           {navItems.map((item) => {
@@ -174,12 +175,12 @@ export function AppLayout() {
                 onClick={() => handleNavigate(item.path)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-lg transition-all duration-200 ${
                   isActive
-                    ? "bg-sky-500/15 text-white border-l-[3px] border-sky-400 pl-[9px]"
-                    : "text-white/60 hover:bg-white/5 hover:text-white/90 border-l-[3px] border-transparent pl-[9px]"
+                    ? "bg-sidebar-accent text-sidebar-foreground border-l-[3px] border-sidebar-primary pl-[9px]"
+                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border-l-[3px] border-transparent pl-[9px]"
                 }`}
                 style={{ fontWeight: isActive ? 600 : 400 }}
               >
-                <Icon className={`w-[18px] h-[18px] ${isActive ? "text-sky-400" : ""}`} />
+                <Icon className={`w-[18px] h-[18px] ${isActive ? "text-sidebar-primary" : ""}`} />
                 {item.label}
               </button>
             );
@@ -189,7 +190,7 @@ export function AppLayout() {
           {devNavItems.length > 0 && (
             <>
               <div className="pt-3 pb-1">
-                <p className="text-[10px] uppercase tracking-widest text-violet-300/60 px-3" style={{ fontWeight: 600 }}>
+                <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50 px-3" style={{ fontWeight: 600 }}>
                   Desenvolvedor
                 </p>
               </div>
@@ -202,12 +203,12 @@ export function AppLayout() {
                     onClick={() => handleNavigate(item.path)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-lg transition-all duration-200 ${
                       isActive
-                        ? "bg-violet-500/15 text-white border-l-[3px] border-violet-400 pl-[9px]"
-                        : "text-white/50 hover:bg-white/5 hover:text-white/90 border-l-[3px] border-transparent pl-[9px]"
+                        ? "bg-sidebar-accent text-sidebar-foreground border-l-[3px] border-sidebar-primary pl-[9px]"
+                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border-l-[3px] border-transparent pl-[9px]"
                     }`}
                     style={{ fontWeight: isActive ? 600 : 400 }}
                   >
-                    <Icon className={`w-[18px] h-[18px] ${isActive ? "text-violet-400" : ""}`} />
+                    <Icon className={`w-[18px] h-[18px] ${isActive ? "text-sidebar-primary" : ""}`} />
                     {item.label}
                   </button>
                 );
@@ -216,19 +217,19 @@ export function AppLayout() {
           )}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
+        <div className="border-t border-sidebar-border p-4">
           <button
             onClick={() => handleNavigate("/perfil")}
-            className="flex items-center gap-3 w-full hover:bg-white/5 rounded-lg p-1 transition-colors"
+            className="flex items-center gap-3 w-full hover:bg-sidebar-accent/50 rounded-lg p-1 transition-colors"
           >
-            <div className="w-9 h-9 rounded-full bg-sky-500/20 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-sky-400" />
+            <div className="w-9 h-9 rounded-full bg-sidebar-primary/20 flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-sidebar-primary" />
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-[13px] text-white truncate" style={{ fontWeight: 500 }}>
+              <p className="text-[13px] text-sidebar-foreground truncate" style={{ fontWeight: 500 }}>
                 {user?.fullName || user?.username || "Usuário"}
               </p>
-              <p className="text-[11px] text-white/40 truncate">
+              <p className="text-[11px] text-sidebar-foreground/60 truncate">
                 {user?.role ? USER_ROLE_LABELS[user.role] : ""}
               </p>
             </div>
@@ -239,7 +240,7 @@ export function AppLayout() {
       {/* Main content area */}
       <main className="flex-1 flex flex-col overflow-hidden md:ml-[260px] w-full">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0">
+        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -266,21 +267,24 @@ export function AppLayout() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setLogoutConfirmOpen(true)}
-            className="flex items-center gap-2 text-[13px] text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg transition-colors"
-            style={{ fontWeight: 500 }}
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:inline">Sair</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeSwitcher />
+            <button
+              onClick={() => setLogoutConfirmOpen(true)}
+              className="flex items-center gap-2 text-[13px] text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/50 px-3 py-2 rounded-lg transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline">Sair</span>
+            </button>
+          </div>
         </header>
 
         {/* Banner de conexão offline */}
         {!isOnline && (
-          <div className="bg-gray-900 px-4 py-2.5 flex items-center gap-3 shrink-0">
-            <WifiOff className="w-4 h-4 text-gray-300 flex-shrink-0" />
-            <p className="text-[13px] text-gray-200" style={{ fontWeight: 500 }}>
+          <div className="bg-muted border-b border-border px-4 py-2.5 flex items-center gap-3 shrink-0">
+            <WifiOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <p className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
               Sem conexão com a rede — as ações não serão salvas até você reconectar.
             </p>
           </div>
@@ -288,17 +292,17 @@ export function AppLayout() {
 
         {/* Banner de manutenção programada */}
         {bannerVisible && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center gap-3 shrink-0">
+          <div className="bg-amber-50 dark:bg-amber-950/50 border-b border-amber-200 dark:border-amber-800 px-4 py-2.5 flex items-center gap-3 shrink-0">
             <TriangleAlert className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] text-amber-800 truncate" style={{ fontWeight: 500 }}>
+              <p className="text-[13px] text-amber-800 dark:text-amber-200 truncate" style={{ fontWeight: 500 }}>
                 <span style={{ fontWeight: 700 }}>Manutenção Programada:</span>{" "}
                 {MAINTENANCE_BANNER}
               </p>
               {MAINTENANCE_DATE_STR && (
                 <div className="flex items-center gap-1 mt-0.5">
                   <Clock className="w-3 h-3 text-amber-500" />
-                  <p className="text-[11px] text-amber-600">
+                  <p className="text-[11px] text-amber-600 dark:text-amber-400">
                     Prevista para {formatMaintenanceDate(MAINTENANCE_DATE_STR)}
                   </p>
                 </div>
@@ -320,22 +324,22 @@ export function AppLayout() {
         </div>
 
         {/* Footer */}
-        <footer className="shrink-0 border-t border-gray-100 bg-white px-4 md:px-6 py-2.5">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-1 text-[11px] text-gray-400">
+        <footer className="shrink-0 border-t border-border bg-background px-4 md:px-6 py-2.5">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-1 text-[11px] text-muted-foreground">
             <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
-              <span style={{ fontWeight: 600 }} className="text-gray-500">SGP NUINF</span>
-              <span className="text-gray-300">·</span>
+              <span style={{ fontWeight: 600 }} className="text-foreground">SGP NUINF</span>
+              <span className="text-muted-foreground/60">·</span>
               <span>Sistema de Gestão Patrimonial</span>
-              <span className="text-gray-300">·</span>
+              <span className="text-muted-foreground/60">·</span>
               <span>Núcleo de Informática</span>
-              <span className="text-gray-300">·</span>
+              <span className="text-muted-foreground/60">·</span>
               <span>Uso Interno · Acesso Restrito</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap justify-center md:justify-end">
               <span>© {new Date().getFullYear()} Desenvolvido por</span>
-              <span style={{ fontWeight: 600 }} className="text-gray-500">Isaac Andrade</span>
-              <span className="text-gray-300">·</span>
-              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px]" style={{ fontWeight: 600 }}>
+              <span style={{ fontWeight: 600 }} className="text-foreground">Isaac Andrade</span>
+              <span className="text-muted-foreground/60">·</span>
+              <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-muted-foreground" style={{ fontWeight: 600 }}>
                 v{APP_VERSION}
               </span>
             </div>

@@ -124,7 +124,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
 
   const hasAsset = !isEquipmentWithoutAsset(equipment.assetNumber, equipment.id);
   const safeStatus = normalizeEquipmentStatus(equipment.status) ?? (equipment.status && equipment.status in EQUIPMENT_STATUS_COLORS ? equipment.status : null);
-  const statusColors = safeStatus ? EQUIPMENT_STATUS_COLORS[safeStatus] : { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200" };
+  const statusColors = safeStatus ? EQUIPMENT_STATUS_COLORS[safeStatus] : { bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-600 dark:text-muted-foreground", border: "border-gray-200 dark:border-gray-700" };
   const statusLabel = safeStatus ? EQUIPMENT_STATUS_LABELS[safeStatus] : (equipment.status ?? "—");
   const TypeIcon = getTypeIcon();
 
@@ -135,7 +135,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+        className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -165,10 +165,10 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
           {/* Patrimônio e Serial */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <div className="bg-muted rounded-xl p-4 border border-border">
               <div className="flex items-center gap-2 mb-2">
-                <Tag className="w-4 h-4 text-gray-400" />
-                <label className="text-[11px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                <Tag className="w-4 h-4 text-muted-foreground" />
+                <label className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
                   Patrimônio
                 </label>
               </div>
@@ -179,26 +179,26 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                 {hasAsset ? equipment.assetNumber : "Sem Patrimônio"}
               </p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <div className="bg-muted rounded-xl p-4 border border-border">
               <div className="flex items-center gap-2 mb-2">
-                <Hash className="w-4 h-4 text-gray-400" />
-                <label className="text-[11px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                <Hash className="w-4 h-4 text-muted-foreground" />
+                <label className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
                   Serial Number
                 </label>
               </div>
               <p className="text-[15px] text-foreground" style={{ fontWeight: 500 }}>
-                {equipment.serialNumber || <span className="text-gray-300">Não informado</span>}
+                {equipment.serialNumber || <span className="text-muted-foreground">Não informado</span>}
               </p>
             </div>
           </div>
 
           {/* Descrição */}
           {equipment.description && (
-            <div className="bg-sky-50 rounded-xl p-4 border border-sky-100">
-              <label className="text-[11px] text-sky-700 uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
+            <div className="bg-sky-50 dark:bg-sky-950/40 rounded-xl p-4 border border-sky-100 dark:border-sky-800">
+              <label className="text-[11px] text-sky-700 dark:text-sky-300 uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
                 Descrição Detalhada
               </label>
-              <p className="text-[14px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-[14px] text-foreground leading-relaxed whitespace-pre-wrap">
                 {equipment.description}
               </p>
             </div>
@@ -206,24 +206,24 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
 
           {/* Tipo, Marca e Status */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <label className="text-[11px] text-gray-400 uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
+            <div className="bg-muted rounded-xl p-4 border border-border">
+              <label className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
                 Tipo
               </label>
               <p className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
                 {getEquipmentTypeLabel(equipment.type)}
               </p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <label className="text-[11px] text-gray-400 uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
+            <div className="bg-muted rounded-xl p-4 border border-border">
+              <label className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
                 Marca
               </label>
               <p className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
                 {equipment.brand}
               </p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <label className="text-[11px] text-gray-400 uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
+            <div className="bg-muted rounded-xl p-4 border border-border">
+              <label className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2 block" style={{ fontWeight: 600 }}>
                 Status
               </label>
               <span
@@ -237,10 +237,10 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
 
           {/* Setor e Responsável */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <div className="bg-muted rounded-xl p-4 border border-border">
               <div className="flex items-center gap-2 mb-2">
-                <Building2 className="w-4 h-4 text-gray-400" />
-                <label className="text-[11px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                <label className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
                   Setor Atual
                 </label>
               </div>
@@ -252,10 +252,10 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
               </p>
             </div>
             {equipment.equipmentUser && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <div className="bg-muted rounded-xl p-4 border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <label className="text-[11px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <label className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
                     Responsável
                   </label>
                 </div>
@@ -278,16 +278,16 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {equipment.hostname && (
                   <div>
-                    <p className="text-[11px] text-gray-500 mb-1">Hostname</p>
-                    <p className="text-[13px] text-gray-700 font-mono" style={{ fontWeight: 500 }}>
+                    <p className="text-[11px] text-muted-foreground mb-1">Hostname</p>
+                    <p className="text-[13px] text-foreground font-mono" style={{ fontWeight: 500 }}>
                       {equipment.hostname}
                     </p>
                   </div>
                 )}
                 {equipment.ipAddress && (
                   <div>
-                    <p className="text-[11px] text-gray-500 mb-1">Endereço IP</p>
-                    <p className="text-[13px] text-gray-700 font-mono" style={{ fontWeight: 500 }}>
+                    <p className="text-[11px] text-muted-foreground mb-1">Endereço IP</p>
+                    <p className="text-[13px] text-foreground font-mono" style={{ fontWeight: 500 }}>
                       {equipment.ipAddress}
                     </p>
                   </div>
@@ -297,18 +297,18 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
           )}
 
           {/* Defeitos em aberto (histórico resolvido fica em /historico-defeitos) */}
-          <div className="bg-amber-50/80 rounded-xl p-4 border border-amber-100">
+          <div className="bg-amber-50/80 dark:bg-amber-950/40 rounded-xl p-4 border border-amber-100 dark:border-amber-800/60">
             <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
-                <label className="text-[11px] text-amber-800 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <label className="text-[11px] text-amber-800 dark:text-amber-200 uppercase tracking-wider" style={{ fontWeight: 600 }}>
                   Defeitos em aberto
                 </label>
               </div>
               <div className="flex items-center gap-2">
                 <Link
                   to={`/historico-defeitos?equipmentId=${equipment.id}`}
-                  className="flex items-center gap-1.5 text-[12px] text-sky-600 hover:text-sky-800 px-2.5 py-1.5 rounded-lg hover:bg-sky-50 transition-colors"
+                  className="flex items-center gap-1.5 text-[12px] text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 px-2.5 py-1.5 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/50 transition-colors"
                   style={{ fontWeight: 500 }}
                 >
                   <History className="w-3.5 h-3.5" />
@@ -317,7 +317,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                 <button
                   type="button"
                   onClick={() => setDefectFormOpen((v) => !v)}
-                  className="flex items-center gap-1.5 text-[12px] text-amber-700 hover:text-amber-900 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-[12px] text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-2.5 py-1.5 rounded-lg transition-colors"
                   style={{ fontWeight: 500 }}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -327,23 +327,23 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
             </div>
 
             {defectFormOpen && (
-              <div className="mb-4 p-3 bg-white rounded-lg border border-amber-200">
+              <div className="mb-4 p-3 bg-card dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-700/60">
                 <textarea
                   value={defectDescription}
                   onChange={(e) => setDefectDescription(e.target.value.slice(0, DEFECT_DESCRIPTION_MAX))}
                   placeholder="Descreva o defeito (obrigatório, máx. 500 caracteres)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:border-amber-400 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
                 />
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] text-muted-foreground">
                     {defectDescription.length}/{DEFECT_DESCRIPTION_MAX}
                   </span>
                   <button
                     type="button"
                     onClick={handleSubmitDefect}
                     disabled={createDefectMutation.isPending || !defectDescription.trim()}
-                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-[12px] rounded-lg transition-colors"
+                    className="px-3 py-1.5 bg-amber-600 dark:bg-amber-600 hover:bg-amber-700 dark:hover:bg-amber-500 disabled:opacity-50 text-white text-[12px] rounded-lg transition-colors"
                     style={{ fontWeight: 600 }}
                   >
                     {createDefectMutation.isPending ? "Salvando..." : "Salvar defeito"}
@@ -353,15 +353,15 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
             )}
 
             {defectsLoading ? (
-              <p className="text-[13px] text-gray-500">Carregando...</p>
+              <p className="text-[13px] text-muted-foreground">Carregando...</p>
             ) : defects.length === 0 ? (
-              <p className="text-[13px] text-gray-500">Nenhum defeito em aberto.</p>
+              <p className="text-[13px] text-muted-foreground">Nenhum defeito em aberto.</p>
             ) : (
               <ul className="space-y-3">
                 {defects.map((d: DefectResponse) => (
                   <li
                     key={d.id}
-                    className="bg-white rounded-lg border border-amber-200/80 p-3 text-[13px]"
+                    className="bg-card dark:bg-amber-950/20 rounded-lg border border-amber-200/80 dark:border-amber-700/50 p-3 text-[13px]"
                   >
                     {editingDefectId === d.id ? (
                       <div className="space-y-2">
@@ -369,17 +369,17 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                           value={editingDefectDescription}
                           onChange={(e) => setEditingDefectDescription(e.target.value.slice(0, DEFECT_DESCRIPTION_MAX))}
                           rows={3}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13px] focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
+                          className="w-full px-3 py-2 border border-border rounded-lg text-[13px] bg-background text-foreground placeholder:text-muted-foreground focus:border-amber-400 dark:focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none resize-none"
                         />
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] text-gray-400">
+                          <span className="text-[11px] text-muted-foreground">
                             {editingDefectDescription.length}/{DEFECT_DESCRIPTION_MAX}
                           </span>
                           <div className="flex gap-2">
                             <button
                               type="button"
                               onClick={() => { setEditingDefectId(null); setEditingDefectDescription(""); }}
-                              className="px-2.5 py-1.5 text-[12px] text-gray-500 hover:bg-gray-100 rounded-lg"
+                              className="px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-muted rounded-lg"
                             >
                               Cancelar
                             </button>
@@ -398,7 +398,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                                 updateDefectMutation.mutate({ defectId: d.id, description: trimmed });
                               }}
                               disabled={updateDefectMutation.isPending || !editingDefectDescription.trim()}
-                              className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-[12px] rounded-lg"
+                              className="px-2.5 py-1.5 bg-amber-600 dark:bg-amber-600 hover:bg-amber-700 dark:hover:bg-amber-500 disabled:opacity-50 text-white text-[12px] rounded-lg"
                               style={{ fontWeight: 600 }}
                             >
                               {updateDefectMutation.isPending ? "Salvando..." : "Salvar"}
@@ -408,8 +408,8 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                       </div>
                     ) : (
                       <>
-                        <p className="text-gray-800 mb-1.5">{d.description}</p>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+                        <p className="text-foreground mb-1.5">{d.description}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                           <span>{formatDefectDate(d.reportedAt)}</span>
                           {d.reportedBy && <span>por {d.reportedBy}</span>}
                         </div>
@@ -421,7 +421,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                               setEditingDefectDescription(d.description);
                             }}
                             disabled={resolveDefectMutation.isPending || !!editingDefectId}
-                            className="flex items-center gap-1 text-[12px] text-sky-600 hover:text-sky-700 font-medium disabled:opacity-50"
+                            className="flex items-center gap-1 text-[12px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium disabled:opacity-50"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                             Editar
@@ -430,7 +430,7 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
                             type="button"
                             onClick={() => resolveDefectMutation.mutate(d.id)}
                             disabled={resolveDefectMutation.isPending || !!editingDefectId}
-                            className="flex items-center gap-1 text-[12px] text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50"
+                            className="flex items-center gap-1 text-[12px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium disabled:opacity-50"
                           >
                             <CheckCircle className="w-3.5 h-3.5" />
                             Marcar como resolvido
@@ -445,10 +445,10 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
           </div>
 
           {/* Data de Cadastro */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <div className="bg-muted rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <label className="text-[11px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <label className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
                 Data de Cadastro
               </label>
             </div>
@@ -465,10 +465,10 @@ export function EquipmentDetailsModal({ open, onClose, equipment, onEdit }: Prop
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <div className="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg text-[13px] transition-colors"
+            className="px-5 py-2.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg text-[13px] transition-colors"
             style={{ fontWeight: 500 }}
           >
             Fechar

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, Wifi, Tag } from "lucide-react";
+import { Link } from "react-router";
+import { X, Wifi, Tag, Truck } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { equipmentApi } from "../api/equipment.api";
 import type { EquipmentResponseDTO, SectorResponseDTO, EquipmentType, EquipmentStatus, CreateEquipmentDTO } from "../types";
@@ -159,7 +160,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     if (!form.brand.trim()) e.brand = "Marca obrigatória";
     if (!form.type) e.type = "Selecione o tipo de equipamento";
     if (!form.status) e.status = "Selecione o status";
-    if (!form.sectorId) e.sectorId = "Selecione o setor";
+    if (!equipment && !form.sectorId) e.sectorId = "Selecione o setor";
     if (form.networkMode === "FIXO" && form.ipAddress) {
       const ipValue = form.ipAddress.trim();
       if (!ipValue) {
@@ -212,7 +213,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       description: form.description.trim() || undefined,
       type: form.type as EquipmentType,
       status: form.status as EquipmentStatus,
-      sectorId: form.sectorId,
+      sectorId: equipment ? equipment.currentSector.id : form.sectorId,
       equipmentUser: form.status ? shouldShowUserField(form.status as EquipmentStatus) ? form.equipmentUser.trim() || undefined : undefined : undefined,
       hostname: form.hostname.trim() || undefined,
       ipAddress: ipToSend,
@@ -234,7 +235,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border">
         {/* Header */}
         <div className="bg-[#0c4a6e] px-6 py-4 flex justify-between items-center">
           <h3 className="text-white text-[16px]" style={{ fontWeight: 600 }}>
@@ -248,7 +249,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         {/* Body */}
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
           {/* No asset tag */}
-          <label className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 cursor-pointer hover:bg-amber-50/80 transition-colors">
+          <label className="flex items-start gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 cursor-pointer hover:bg-amber-50/80 dark:hover:bg-amber-950/50 transition-colors">
             <input
               type="checkbox"
               checked={noAsset}
@@ -259,10 +260,10 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               className="mt-0.5 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
             />
             <div>
-              <span className="text-[13px] text-amber-800" style={{ fontWeight: 600 }}>
+              <span className="text-[13px] text-amber-800 dark:text-amber-200" style={{ fontWeight: 600 }}>
                 Item sem etiqueta patrimonial?
               </span>
-              <p className="text-[11px] text-amber-600 mt-0.5">
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
                 Voce pode definir o status do equipamento abaixo.
               </p>
             </div>
@@ -271,7 +272,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
           {/* Patrimônio & Serial */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 <Tag className="w-3 h-3 inline mr-1" />
                 Patrimonio <span className="text-red-500">*</span>
               </label>
@@ -287,18 +288,18 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 }}
                 disabled={noAsset}
                 placeholder={noAsset ? "Sem Patrimonio" : "Digite 7 dígitos (ex: 1234567)"}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all disabled:bg-gray-100 disabled:text-gray-400 ${errors.assetNumber ? "border-red-400" : "border-gray-200"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all disabled:bg-muted disabled:text-muted-foreground ${errors.assetNumber ? "border-red-400" : "border-border"
                   }`}
               />
               {!noAsset && assetInputValue.length > 0 && assetInputValue.length < 7 && (
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                   Será salvo como: <span className="font-mono">{assetInputValue.padStart(7, "0")}</span>
                 </p>
               )}
               {errors.assetNumber && <p className="text-[11px] text-red-500 mt-1">{errors.assetNumber}</p>}
             </div>
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 Serial Number
               </label>
               <input
@@ -310,21 +311,21 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                   handleChange("serialNumber", sanitized);
                 }}
                 placeholder="Apenas letras e numeros (max. 50)"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all"
+                className="w-full px-3 py-2.5 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all"
               />
             </div>
           </div>
 
           {/* Marca */}
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               Marca <span className="text-red-500">*</span>
             </label>
             {brands && brands.length > 0 ? (
               <select
                 value={form.brand}
                 onChange={(e) => handleChange("brand", e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.brand ? "border-red-400" : "border-gray-200"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.brand ? "border-red-400" : "border-border"
                   }`}
               >
                 <option value="">Selecione a marca</option>
@@ -341,7 +342,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 value={form.brand}
                 onChange={(e) => handleChange("brand", e.target.value)}
                 placeholder="Ex: Dell, Lenovo, HP..."
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.brand ? "border-red-400" : "border-gray-200"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all ${errors.brand ? "border-red-400" : "border-border"
                   }`}
               />
             )}
@@ -350,7 +351,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
 
           {/* Descrição */}
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               Descricao Detalhada
             </label>
             <textarea
@@ -358,20 +359,20 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               onChange={(e) => handleChange("description", e.target.value)}
               rows={3}
               placeholder="Especificacoes do equipamento..."
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] resize-none transition-all"
+              className="w-full px-3 py-2.5 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background resize-none transition-all"
             />
           </div>
 
           {/* Tipo & Setor */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 Tipo de Equipamento <span className="text-red-500">*</span>
               </label>
               <select
                 value={form.type}
                 onChange={(e) => handleChange("type", e.target.value as EquipmentType | "")}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.type ? "border-red-400" : "border-gray-200"}`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.type ? "border-red-400" : "border-border"}`}
               >
                 <option value="">Selecione o tipo</option>
                 {[...EQUIPMENT_TYPES]
@@ -383,36 +384,65 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               {errors.type && <p className="text-[11px] text-red-500 mt-1">{errors.type}</p>}
             </div>
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
-                Setor <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={form.sectorId}
-                onChange={(e) => handleChange("sectorId", e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.sectorId ? "border-red-400" : "border-gray-200"}`}
-              >
-                <option value="">Selecione o setor</option>
-                {[...sectors]
-                  .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.acronym} - {s.fullName}
-                    </option>
-                  ))}
-              </select>
-              {errors.sectorId && <p className="text-[11px] text-red-500 mt-1">{errors.sectorId}</p>}
+              {isEditing ? (
+                <>
+                  <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
+                    Setor atual
+                  </label>
+                  <div className="w-full px-3 py-2.5 border border-border rounded-lg bg-muted text-foreground text-[13px]">
+                    {equipment.currentSector.acronym} — {equipment.currentSector.fullName}
+                  </div>
+                  <div className="mt-2 p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-800">
+                    <p className="text-[11px] text-sky-800 dark:text-sky-200 flex items-start gap-2" style={{ fontWeight: 500 }}>
+                      <Truck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>
+                        Para alterar o setor deste equipamento, use a ferramenta de{" "}
+                        <Link
+                          to="/movimentacao"
+                          state={{ equipment }}
+                          className="text-sky-600 dark:text-sky-400 underline hover:text-sky-700 dark:hover:text-sky-300"
+                          onClick={onClose}
+                        >
+                          Transferência em Movimentação
+                        </Link>.
+                      </span>
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
+                    Setor <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.sectorId}
+                    onChange={(e) => handleChange("sectorId", e.target.value)}
+                    className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.sectorId ? "border-red-400" : "border-border"}`}
+                  >
+                    <option value="">Selecione o setor</option>
+                    {[...sectors]
+                      .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.acronym} - {s.fullName}
+                        </option>
+                      ))}
+                  </select>
+                  {errors.sectorId && <p className="text-[11px] text-red-500 mt-1">{errors.sectorId}</p>}
+                </>
+              )}
             </div>
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               Status <span className="text-red-500">*</span>
             </label>
             <select
               value={form.status}
               onChange={(e) => handleChange("status", e.target.value as EquipmentStatus | "")}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.status ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.status ? "border-red-400" : "border-border"}`}
             >
               <option value="">Selecione o status</option>
               {[...EQUIPMENT_STATUSES]
@@ -427,22 +457,22 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
           {/* Responsável */}
           {showUser && (
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 Responsavel
               </label>
               <input
                 value={form.equipmentUser}
                 onChange={(e) => handleChange("equipmentUser", e.target.value)}
                 placeholder="Nome do responsavel..."
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all"
+                className="w-full px-3 py-2.5 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all"
               />
             </div>
           )}
 
           {/* Rede */}
           {shouldShowNetwork && (
-            <div className="bg-sky-50 p-4 rounded-xl border border-sky-100">
-              <p className="text-[11px] text-sky-700 uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ fontWeight: 700 }}>
+            <div className="bg-sky-50 dark:bg-sky-950/40 p-4 rounded-xl border border-sky-100 dark:border-sky-800">
+              <p className="text-[11px] text-sky-700 dark:text-sky-300 uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ fontWeight: 700 }}>
                 <Wifi className="w-3.5 h-3.5" />
                 Informacoes de Rede (Opcional)
               </p>
@@ -452,7 +482,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                     value={form.hostname ?? ""}
                     onChange={(e) => handleChange("hostname", e.target.value)}
                     placeholder="Hostname"
-                    className={`w-full px-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-white transition-all ${errors.hostname ? "border-red-400" : "border-sky-200"}`}
+                    className={`w-full px-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-background transition-all ${errors.hostname ? "border-red-400" : "border-border"}`}
                   />
                   {errors.hostname && <p className="text-[11px] text-red-500 mt-1">{errors.hostname}</p>}
                 </div>
@@ -470,7 +500,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                         handleChange("ipAddress", "");
                       }
                     }}
-                    className="w-full px-3 py-2.5 border border-sky-200 rounded-lg outline-none text-[13px] bg-white focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg outline-none text-[13px] bg-background focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
                   >
                     <option value="">Selecione o modo de rede</option>
                     <option value="DHCP">DHCP (automático)</option>
@@ -478,7 +508,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                   </select>
                   {form.networkMode === "FIXO" ? (
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-gray-500 pointer-events-none">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground pointer-events-none">
                         10.190.110.
                       </span>
                       <input
@@ -490,7 +520,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                         }}
                         placeholder="xx"
                         maxLength={3}
-                        className={`w-full pl-[100px] pr-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-white transition-all ${errors.ipAddress ? "border-red-400" : "border-sky-200"
+                        className={`w-full pl-[100px] pr-3 py-2.5 border rounded-lg outline-none text-[13px] focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 bg-background transition-all ${errors.ipAddress ? "border-red-400" : "border-border"
                           }`}
                       />
                     </div>
@@ -498,13 +528,13 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                     <input
                       value="DHCP"
                       disabled
-                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg outline-none text-[13px] bg-gray-100 text-gray-400 cursor-not-allowed"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg outline-none text-[13px] bg-muted text-muted-foreground cursor-not-allowed"
                     />
                   ) : (
                     <input
                       disabled
                       placeholder="Selecione o modo de rede"
-                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg outline-none text-[13px] bg-gray-50 text-gray-400 cursor-not-allowed"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg outline-none text-[13px] bg-muted text-muted-foreground cursor-not-allowed"
                     />
                   )}
                   {errors.ipAddress && <p className="text-[11px] text-red-500 mt-1">{errors.ipAddress}</p>}
@@ -515,11 +545,11 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <div className="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="px-5 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg text-[13px] transition-colors"
+            className="px-5 py-2.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-lg text-[13px] transition-colors"
             style={{ fontWeight: 500 }}
           >
             Cancelar

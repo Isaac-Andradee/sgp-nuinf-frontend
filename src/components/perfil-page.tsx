@@ -28,14 +28,14 @@ function PasswordInput({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
-        className="w-full px-3 pr-10 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all"
+        className="w-full px-3 pr-10 py-2.5 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all"
         autoComplete="current-password"
       />
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
         tabIndex={-1}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
         aria-label={show ? "Ocultar senha" : "Mostrar senha"}
       >
         {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -94,9 +94,9 @@ export function PerfilPage() {
       </div>
 
       {/* User info card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-6">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm mb-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-14 h-14 rounded-full bg-sky-100 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
             <User className="w-7 h-7 text-primary" />
           </div>
           <div>
@@ -104,8 +104,8 @@ export function PerfilPage() {
               {user?.fullName || user?.username}
             </h4>
             <div className="flex items-center gap-2 mt-1">
-              <Shield className="w-3.5 h-3.5 text-sky-500" />
-              <span className="text-[12px] text-sky-600 bg-sky-50 px-2 py-0.5 rounded" style={{ fontWeight: 600 }}>
+              <Shield className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[12px] text-primary bg-primary/10 px-2 py-0.5 rounded" style={{ fontWeight: 600 }}>
                 {user?.role ? USER_ROLE_LABELS[user.role] : ""}
               </span>
             </div>
@@ -113,30 +113,30 @@ export function PerfilPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1" style={{ fontWeight: 700 }}>Usuario</p>
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 700 }}>Usuario</p>
             <p className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>{user?.username}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1" style={{ fontWeight: 700 }}>Email</p>
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 700 }}>Email</p>
             <p className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>{user?.email}</p>
           </div>
           <div className={`md:col-span-2 rounded-lg p-3 flex items-start gap-2.5 border ${
             user?.lastLoginAt
-              ? "bg-sky-50 border-sky-100"
-              : "bg-gray-50 border-gray-100"
+              ? "bg-sky-50 dark:bg-sky-950/40 border-sky-100 dark:border-sky-800"
+              : "bg-muted border-border"
           }`}>
-            <Clock className={`w-4 h-4 mt-0.5 flex-shrink-0 ${user?.lastLoginAt ? "text-sky-500" : "text-gray-400"}`} />
+            <Clock className={`w-4 h-4 mt-0.5 flex-shrink-0 ${user?.lastLoginAt ? "text-sky-500 dark:text-sky-400" : "text-muted-foreground"}`} />
             <div>
               <p
-                className={`text-[10px] uppercase tracking-wider mb-0.5 ${user?.lastLoginAt ? "text-sky-500" : "text-gray-400"}`}
+                className={`text-[10px] uppercase tracking-wider mb-0.5 ${user?.lastLoginAt ? "text-sky-500 dark:text-sky-400" : "text-muted-foreground"}`}
                 style={{ fontWeight: 700 }}
               >
                 Último Acesso
               </p>
               {user?.lastLoginAt ? (
                 <>
-                  <p className="text-[13px] text-sky-800" style={{ fontWeight: 500 }}>
+                  <p className="text-[13px] text-sky-800 dark:text-sky-200" style={{ fontWeight: 500 }}>
                     {new Date(user.lastLoginAt).toLocaleString("pt-BR", {
                       weekday: "long",
                       day: "2-digit",
@@ -146,12 +146,12 @@ export function PerfilPage() {
                       minute: "2-digit",
                     })}
                   </p>
-                  <p className="text-[11px] text-sky-400 mt-0.5">
+                  <p className="text-[11px] text-sky-400 dark:text-sky-300 mt-0.5">
                     Se não foi você, contate o administrador imediatamente.
                   </p>
                 </>
               ) : (
-                <p className="text-[13px] text-gray-400" style={{ fontWeight: 400 }}>
+                <p className="text-[13px] text-muted-foreground" style={{ fontWeight: 400 }}>
                   Não disponível — faça logout e login novamente para registrar o acesso.
                 </p>
               )}
@@ -161,19 +161,19 @@ export function PerfilPage() {
       </div>
 
       {/* Change password */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-5">
           <Lock className="w-4 h-4 text-primary" />
           <h4 className="text-[15px] text-foreground" style={{ fontWeight: 700 }}>Alterar Senha</h4>
         </div>
 
         {pwError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-[13px] text-red-700">{pwError}</div>
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg text-[13px] text-red-700 dark:text-red-300">{pwError}</div>
         )}
 
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>Senha Atual</label>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>Senha Atual</label>
             <PasswordInput
               value={currentPassword}
               onChange={setCurrentPassword}
@@ -182,7 +182,7 @@ export function PerfilPage() {
             />
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>Nova Senha</label>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>Nova Senha</label>
             <PasswordInput
               value={newPassword}
               onChange={setNewPassword}
@@ -191,7 +191,7 @@ export function PerfilPage() {
             />
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>Confirmar Nova Senha</label>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>Confirmar Nova Senha</label>
             <PasswordInput
               value={confirmPassword}
               onChange={setConfirmPassword}
@@ -199,7 +199,7 @@ export function PerfilPage() {
               required
             />
           </div>
-          <p className="text-[11px] text-gray-400">
+          <p className="text-[11px] text-muted-foreground">
             A senha deve conter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.
           </p>
 

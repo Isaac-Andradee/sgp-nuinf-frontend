@@ -5,6 +5,7 @@ import axios from "axios";
 import { api } from "../api/client";
 import { useAuth } from "../contexts/AuthContext";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { ThemeSwitcher } from "./theme-switcher";
 import { toast } from "sonner";
 
 /**
@@ -126,97 +127,91 @@ export function LoginPage() {
   // Spinner enquanto verifica se precisa de setup
   if (checking) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%)" }}
-      >
-        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-900 via-sky-800 to-sky-700 dark:from-background dark:via-background dark:to-background">
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeSwitcher />
+        </div>
+        <div className="w-8 h-8 border-2 border-white/30 dark:border-primary/30 border-t-white dark:border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        fontFamily: "'Inter', sans-serif",
-        background: "linear-gradient(135deg, #0c4a6e 0%, #075985 30%, #0369a1 70%, #0284c7 100%)",
-      }}
+      className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-sky-900 via-sky-800 to-sky-700 dark:from-background dark:via-background dark:to-background"
+      style={{ fontFamily: "'Inter', sans-serif" }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeSwitcher />
+      </div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }}
-        />
-        <div
-          className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }}
-        />
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 dark:opacity-5" style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10 dark:opacity-5" style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
       </div>
 
       <div className="w-full max-w-[420px] relative">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm mb-4 border border-white/20">
-            <Network className="w-8 h-8 text-sky-300" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 dark:bg-card backdrop-blur-sm mb-4 border border-white/20 dark:border-border">
+            <Network className="w-8 h-8 text-sky-300 dark:text-primary" />
           </div>
-          <h1 className="text-white text-[28px] tracking-tight" style={{ fontWeight: 700 }}>
-            SGP <span className="text-sky-300">NUINF</span>
+          <h1 className="text-white dark:text-foreground text-[28px] tracking-tight" style={{ fontWeight: 700 }}>
+            SGP <span className="text-sky-300 dark:text-primary">NUINF</span>
           </h1>
-          <p className="text-sky-200/60 text-[13px] mt-1">
+          <p className="text-sky-200/60 dark:text-muted-foreground text-[13px] mt-1">
             Sistema de Gestao Patrimonial
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-2xl overflow-hidden border border-border">
           <div className="p-8">
-            <h3 className="text-[18px] text-gray-900 mb-1 text-center" style={{ fontWeight: 600 }}>
+            <h3 className="text-[18px] text-foreground mb-1 text-center" style={{ fontWeight: 600 }}>
               Bem-vindo
             </h3>
-            <p className="text-[13px] text-gray-400 mb-6 text-center">
+            <p className="text-[13px] text-muted-foreground mb-6 text-center">
               Entre com suas credenciais para acessar
             </p>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-red-700">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl text-[13px] text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[12px] text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>
+                <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
                   Usuario
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
+                    className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
                     placeholder="Digite seu usuario"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-[12px] text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>
+                <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
                   Senha
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-10 pr-11 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
+                    className="w-full pl-10 pr-11 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
                     placeholder="Digite sua senha"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
@@ -228,31 +223,31 @@ export function LoginPage() {
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-[12px] text-sky-600 hover:text-sky-700 transition-colors"
+                  className="text-[12px] text-primary hover:opacity-90 transition-colors"
                 >
                   Esqueceu a senha?
                 </Link>
               </div>
 
               {rateLimitUntil && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <Timer className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <p className="text-[13px] text-amber-800" style={{ fontWeight: 600 }}>
+                    <Timer className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                    <p className="text-[13px] text-amber-800 dark:text-amber-200" style={{ fontWeight: 600 }}>
                       Muitas tentativas — aguarde para continuar
                     </p>
                   </div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[12px] text-amber-600">Tempo restante</span>
+                    <span className="text-[12px] text-amber-600 dark:text-amber-400">Tempo restante</span>
                     <span
-                      className="text-[20px] text-amber-700 tabular-nums"
+                      className="text-[20px] text-amber-700 dark:text-amber-300 tabular-nums"
                       style={{ fontWeight: 700 }}
                     >
                       {String(Math.floor(rateLimitCountdown / 60)).padStart(2, "0")}:
                       {String(rateLimitCountdown % 60).padStart(2, "0")}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-amber-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-amber-500 rounded-full transition-all duration-1000"
                       style={{ width: `${(rateLimitCountdown / 30) * 100}%` }}
@@ -264,7 +259,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !!rateLimitUntil}
-                className="w-full bg-[#0369a1] hover:bg-[#075985] text-white py-3 rounded-xl shadow-lg shadow-sky-600/20 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 text-[14px]"
+                className="w-full bg-primary hover:opacity-90 text-primary-foreground py-3 rounded-xl shadow-lg shadow-sky-600/20 dark:shadow-none transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 text-[14px]"
                 style={{ fontWeight: 600 }}
               >
                 {loading ? (

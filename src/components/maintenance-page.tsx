@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Network, Settings, RefreshCw, Clock } from "lucide-react";
 import axios from "axios";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -113,63 +114,63 @@ export function MaintenancePage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{
-        fontFamily: "'Inter', sans-serif",
-        background: "linear-gradient(135deg, #0c4a6e 0%, #075985 35%, #0369a1 70%, #0284c7 100%)",
-      }}
+      className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sky-900 via-sky-800 to-sky-700 dark:from-background dark:via-background dark:to-background"
+      style={{ fontFamily: "'Inter', sans-serif" }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeSwitcher />
+      </div>
       {/* Decoração de fundo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-10"
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-5"
           style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full opacity-10"
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-5"
           style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
       </div>
 
       <div className="w-full max-w-lg relative text-center">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <Network className="w-5 h-5 text-sky-300" />
+          <div className="w-10 h-10 rounded-xl bg-white/10 dark:bg-card backdrop-blur-sm border border-white/20 dark:border-border flex items-center justify-center">
+            <Network className="w-5 h-5 text-sky-300 dark:text-primary" />
           </div>
           <div className="text-left">
-            <span className="text-white text-[22px] tracking-tight" style={{ fontWeight: 700 }}>
-              SGP <span className="text-sky-300">NUINF</span>
+            <span className="text-white dark:text-foreground text-[22px] tracking-tight" style={{ fontWeight: 700 }}>
+              SGP <span className="text-sky-300 dark:text-primary">NUINF</span>
             </span>
           </div>
         </div>
 
         {/* Card principal */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-10 shadow-2xl">
+        <div className="bg-white/10 dark:bg-card backdrop-blur-md border border-white/20 dark:border-border rounded-3xl p-10 shadow-2xl">
           {/* Ícone animado */}
           <div className="flex justify-center mb-6">
             <div className="relative w-20 h-20">
-              <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" />
-              <div className="relative w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-amber-400/20 dark:bg-amber-500/30 animate-ping" />
+              <div className="relative w-20 h-20 rounded-full bg-amber-500/20 dark:bg-amber-500/30 border-2 border-amber-400/50 dark:border-amber-400/60 flex items-center justify-center">
                 <Settings
-                  className="w-9 h-9 text-amber-300"
+                  className="w-9 h-9 text-amber-300 dark:text-amber-400"
                   style={{ transform: `rotate(${dotAngle}deg)`, transition: "transform 16ms linear" }}
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="text-[26px] text-white mb-2" style={{ fontWeight: 700 }}>
+          <h1 className="text-[26px] text-white dark:text-foreground mb-2" style={{ fontWeight: 700 }}>
             Sistema em Manutenção
           </h1>
-          <p className="text-sky-200/80 text-[14px] mb-8 leading-relaxed">
+          <p className="text-sky-200/80 dark:text-muted-foreground text-[14px] mb-8 leading-relaxed">
             Estamos realizando melhorias para servir melhor a nossa unidade.
             <br />O sistema voltará em breve.
           </p>
 
           {/* Janela de manutenção (opcional): "Das 21:30 às 22:30" quando VITE_MAINTENANCE_DATE_START e VITE_MAINTENANCE_DATE estão definidas */}
           {startDate && targetDate && !isNaN(startDate.getTime()) && !isNaN(targetDate.getTime()) && (
-            <div className="mb-4 p-3 bg-white/10 rounded-xl border border-white/20">
-              <p className="text-[11px] text-sky-300/70 uppercase tracking-widest mb-1" style={{ fontWeight: 700 }}>
+            <div className="mb-4 p-3 bg-white/10 dark:bg-muted rounded-xl border border-white/20 dark:border-border">
+              <p className="text-[11px] text-sky-300/70 dark:text-muted-foreground uppercase tracking-widest mb-1" style={{ fontWeight: 700 }}>
                 Janela de manutenção
               </p>
-              <p className="text-[14px] text-white" style={{ fontWeight: 500 }}>
+              <p className="text-[14px] text-white dark:text-foreground" style={{ fontWeight: 500 }}>
                 Das {formatDateTime(startDate)} às {formatDateTime(targetDate)}
               </p>
             </div>
@@ -178,7 +179,7 @@ export function MaintenancePage() {
           {/* Countdown até o fim da manutenção (VITE_MAINTENANCE_DATE = previsão de retorno / fim) */}
           {countdown && !countdown.expired && (
             <div className="mb-8">
-              <p className="text-[11px] text-sky-300/70 uppercase tracking-widest mb-3" style={{ fontWeight: 700 }}>
+              <p className="text-[11px] text-sky-300/70 dark:text-muted-foreground uppercase tracking-widest mb-3" style={{ fontWeight: 700 }}>
                 Previsão de retorno (fim da manutenção)
               </p>
               <div className="grid grid-cols-4 gap-2">
@@ -188,11 +189,11 @@ export function MaintenancePage() {
                   { value: countdown.minutes, label: "Min" },
                   { value: countdown.seconds, label: "Seg" },
                 ].map(({ value, label }) => (
-                  <div key={label} className="bg-white/10 rounded-xl py-3">
-                    <p className="text-[26px] text-white tabular-nums" style={{ fontWeight: 700 }}>
+                  <div key={label} className="bg-white/10 dark:bg-muted rounded-xl py-3">
+                    <p className="text-[26px] text-white dark:text-foreground tabular-nums" style={{ fontWeight: 700 }}>
                       {String(value).padStart(2, "0")}
                     </p>
-                    <p className="text-[10px] text-sky-300/60 uppercase tracking-wide" style={{ fontWeight: 600 }}>
+                    <p className="text-[10px] text-sky-300/60 dark:text-muted-foreground uppercase tracking-wide" style={{ fontWeight: 600 }}>
                       {label}
                     </p>
                   </div>
@@ -202,8 +203,8 @@ export function MaintenancePage() {
           )}
 
           {countdown?.expired && (
-            <div className="mb-6 p-3 bg-emerald-500/20 border border-emerald-400/40 rounded-xl">
-              <p className="text-emerald-300 text-[13px]" style={{ fontWeight: 500 }}>
+            <div className="mb-6 p-3 bg-emerald-500/20 dark:bg-emerald-950/50 border border-emerald-400/40 dark:border-emerald-700 rounded-xl">
+              <p className="text-emerald-300 dark:text-emerald-400 text-[13px]" style={{ fontWeight: 500 }}>
                 O horário previsto de retorno já passou. Verificando se o sistema voltou...
               </p>
             </div>
@@ -213,7 +214,7 @@ export function MaintenancePage() {
           <button
             onClick={poll}
             disabled={checking}
-            className="w-full flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white py-3 rounded-xl transition-all duration-200 text-[14px] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 bg-white/15 dark:bg-primary hover:bg-white/25 dark:hover:opacity-90 border border-white/30 dark:border-primary text-white dark:text-primary-foreground py-3 rounded-xl transition-all duration-200 text-[14px] disabled:opacity-60"
             style={{ fontWeight: 600 }}
           >
             <RefreshCw className={`w-4 h-4 ${checking ? "animate-spin" : ""}`} />
@@ -222,17 +223,17 @@ export function MaintenancePage() {
 
           {/* Última verificação */}
           {lastCheck && (
-            <div className="mt-4 flex items-center justify-center gap-1.5 text-[12px] text-sky-300/50">
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-[12px] text-sky-300/50 dark:text-muted-foreground">
               <Clock className="w-3.5 h-3.5" />
               <span>Última verificação: {formatTime(lastCheck)}</span>
-              <span className="text-sky-300/30">·</span>
+              <span className="text-sky-300/30 dark:opacity-50">·</span>
               <span>Automático a cada 30s</span>
             </div>
           )}
         </div>
 
         {/* Rodapé da tela de manutenção */}
-        <p className="mt-8 text-[12px] text-sky-300/40">
+        <p className="mt-8 text-[12px] text-sky-300/40 dark:text-muted-foreground">
           SGP NUINF — Sistema de Gestão Patrimonial · Núcleo de Informática
         </p>
       </div>

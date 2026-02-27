@@ -68,7 +68,7 @@ function RelativeTime({ iso }: { iso: string }) {
   }, [iso]);
 
   return (
-    <span title={formatDate(iso)} className="text-gray-400 text-[11px]">
+    <span title={formatDate(iso)} className="text-muted-foreground text-[11px]">
       {label}
     </span>
   );
@@ -131,37 +131,37 @@ export function AuditoriaPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-4">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+      <div className="bg-card rounded-xl border border-border shadow-sm mb-4">
+        <div className="p-4 border-b border-border bg-muted/50">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Busca por usuário */}
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>
                 Filtrar por Usuário
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   value={actorSearch}
                   onChange={(e) => { setActorSearch(e.target.value); setPage(0); }}
                   type="text"
                   placeholder="Username do autor da ação..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-background"
                 />
               </div>
             </div>
 
             {/* Tipo de ação */}
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>
                 Tipo de Evento
               </label>
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <select
                   value={actionType}
                   onChange={(e) => { setActionType(e.target.value as AuditActionType | ""); setPage(0); }}
-                  className="w-full pl-10 pr-8 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-white appearance-none"
+                  className="w-full pl-10 pr-8 py-2.5 rounded-lg border border-border focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-background appearance-none"
                 >
                   {ACTION_TYPE_OPTIONS_SORTED.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -186,11 +186,11 @@ export function AuditoriaPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
+              <tr className="border-b border-border">
                 {["Data/Hora", "Usuário", "Evento", "Descrição", "IP"].map((h, i) => (
                   <th
                     key={h}
-                    className={`px-4 md:px-5 py-3 text-left text-[11px] text-gray-400 bg-gray-50/60 whitespace-nowrap ${
+                    className={`px-4 md:px-5 py-3 text-left text-[11px] text-muted-foreground bg-muted/60 whitespace-nowrap ${
                       i === 3 ? "w-full" : ""
                     }`}
                     style={{ fontWeight: 700 }}
@@ -200,13 +200,13 @@ export function AuditoriaPage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     {Array.from({ length: 5 }).map((__, j) => (
                       <td key={j} className="px-5 py-3.5">
-                        <div className="h-4 bg-gray-100 rounded w-full" />
+                        <div className="h-4 bg-muted rounded w-full" />
                       </td>
                     ))}
                   </tr>
@@ -223,10 +223,10 @@ export function AuditoriaPage() {
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Search className="w-5 h-5 text-gray-300" />
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                        <Search className="w-5 h-5 text-muted-foreground" />
                       </div>
-                      <p className="text-[14px] text-gray-400" style={{ fontWeight: 500 }}>
+                      <p className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
                         {hasFilters ? "Nenhum evento encontrado com esses filtros" : "Nenhum evento registrado ainda"}
                       </p>
                     </div>
@@ -236,13 +236,13 @@ export function AuditoriaPage() {
                 data?.content.map((log) => {
                   const colors = AUDIT_ACTION_COLORS[log.actionType];
                   return (
-                    <tr key={log.id} className="hover:bg-sky-50/20 transition-colors duration-100">
+                    <tr key={log.id} className="hover:bg-muted/50 transition-colors duration-100">
                       {/* Data */}
                       <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5">
-                            <Clock className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                            <span className="text-[12px] text-gray-600" style={{ fontWeight: 500 }}>
+                            <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>
                               {new Date(log.createdAt).toLocaleString("pt-BR", {
                                 day: "2-digit", month: "2-digit",
                                 hour: "2-digit", minute: "2-digit",
@@ -256,11 +256,11 @@ export function AuditoriaPage() {
                       {/* Usuário */}
                       <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                            <User className="w-3.5 h-3.5 text-sky-600" />
+                          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <User className="w-3.5 h-3.5 text-primary" />
                           </div>
-                          <span className="text-[13px] text-gray-700" style={{ fontWeight: 500 }}>
-                            {log.actorUsername || <span className="text-gray-300 italic">anônimo</span>}
+                          <span className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                            {log.actorUsername || <span className="text-muted-foreground italic">anônimo</span>}
                           </span>
                         </div>
                       </td>
@@ -278,11 +278,11 @@ export function AuditoriaPage() {
 
                       {/* Descrição */}
                       <td className="px-4 md:px-5 py-3.5">
-                        <p className="text-[13px] text-gray-600 max-w-[360px] truncate" title={log.description}>
-                          {log.description || <span className="text-gray-300">—</span>}
+                        <p className="text-[13px] text-foreground max-w-[360px] truncate" title={log.description}>
+                          {log.description || <span className="text-muted-foreground">—</span>}
                         </p>
                         {log.entityId && (
-                          <p className="text-[10px] text-gray-300 font-mono mt-0.5">
+                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                             {log.entityType} · {log.entityId.slice(0, 8)}…
                           </p>
                         )}
@@ -292,11 +292,11 @@ export function AuditoriaPage() {
                       <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
                         {log.ipAddress ? (
                           <div className="flex items-center gap-1.5">
-                            <Monitor className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                            <span className="text-[12px] text-gray-500 font-mono">{log.ipAddress}</span>
+                            <Monitor className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-[12px] text-muted-foreground font-mono">{log.ipAddress}</span>
                           </div>
                         ) : (
-                          <span className="text-gray-200">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
                     </tr>
@@ -309,12 +309,12 @@ export function AuditoriaPage() {
 
         {/* Paginação */}
         {totalPages > 1 && (
-          <div className="px-5 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between gap-4">
-            <p className="text-[12px] text-gray-400">
-              Página <span style={{ fontWeight: 600 }} className="text-gray-600">{page + 1}</span> de{" "}
-              <span style={{ fontWeight: 600 }} className="text-gray-600">{totalPages}</span>
+          <div className="px-5 py-3.5 border-t border-border bg-muted/40 flex items-center justify-between gap-4">
+            <p className="text-[12px] text-muted-foreground">
+              Página <span style={{ fontWeight: 600 }} className="text-foreground">{page + 1}</span> de{" "}
+              <span style={{ fontWeight: 600 }} className="text-foreground">{totalPages}</span>
               {" "}·{" "}
-              <span style={{ fontWeight: 600 }} className="text-gray-600">
+              <span style={{ fontWeight: 600 }} className="text-foreground">
                 {totalElements.toLocaleString("pt-BR")}
               </span>{" "}
               eventos
@@ -323,7 +323,7 @@ export function AuditoriaPage() {
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -337,7 +337,7 @@ export function AuditoriaPage() {
                     className={`min-w-[32px] h-8 rounded-lg text-[13px] transition-colors ${
                       isActive
                         ? "bg-primary text-white shadow-sm"
-                        : "border border-gray-200 text-gray-500 hover:bg-gray-100"
+                        : "border border-border text-muted-foreground hover:bg-muted"
                     }`}
                     style={{ fontWeight: isActive ? 700 : 400 }}
                   >
@@ -348,7 +348,7 @@ export function AuditoriaPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -357,7 +357,7 @@ export function AuditoriaPage() {
         )}
       </div>
 
-      <p className="text-[11px] text-gray-300 text-center mt-2">
+      <p className="text-[11px] text-muted-foreground text-center mt-2">
         Dados atualizados a cada vez que a página é carregada · Acesso restrito a administradores
       </p>
     </div>

@@ -48,8 +48,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.55 0.2 250);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -250,6 +250,13 @@
   0%, 100% { background-color: rgb(255 247 237); }
   50% { background-color: rgb(254 243 199); }
 }
+@keyframes row-defect-pulse-dark {
+  0%, 100% { background-color: rgb(69 26 3); }
+  50% { background-color: rgb(120 53 15); }
+}
 .row-defect-pulse {
   animation: row-defect-pulse 2s ease-in-out infinite;
+}
+.dark .row-defect-pulse {
+  animation: row-defect-pulse-dark 2s ease-in-out infinite;
 }

@@ -19,10 +19,10 @@ function canEditUser(actorRole: UserRole | undefined, targetUser: UserResponse):
 const PASSWORD_REGEX = /^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).*$/;
 
 const ROLE_COLORS: Record<UserRole, string> = {
-  ADMIN:  "bg-purple-50 text-purple-700 border-purple-200",
-  USER:   "bg-sky-50 text-sky-700 border-sky-200",
-  VIEWER: "bg-gray-100 text-gray-600 border-gray-200",
-  DEV:    "bg-violet-50 text-violet-700 border-violet-200",
+  ADMIN:  "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+  USER:   "bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800",
+  VIEWER: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-border dark:border-gray-700",
+  DEV:    "bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800",
 };
 
 function UserModal({
@@ -130,7 +130,7 @@ function UserModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-border">
         <div className="bg-[#0c4a6e] px-6 py-4 flex justify-between items-center">
           <h3 className="text-white text-[16px]" style={{ fontWeight: 600 }}>
             {user ? "Editar Usuário" : "Novo Usuário"}
@@ -140,32 +140,32 @@ function UserModal({
         <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           {!user && (
             <div>
-              <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 <User className="w-3 h-3 inline mr-1" />Usuário (login)
               </label>
               <input
                 value={form.username}
                 {...field("username")}
                 placeholder="nome.sobrenome"
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.username ? "border-red-400" : "border-gray-200"}`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.username ? "border-red-400" : "border-border"}`}
               />
               {errors.username && <p className="text-[11px] text-red-500 mt-1">{errors.username}</p>}
             </div>
           )}
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               <User className="w-3 h-3 inline mr-1" />Nome Completo
             </label>
             <input
               value={form.fullName}
               {...field("fullName")}
               placeholder="Nome Completo"
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-border"}`}
             />
             {errors.fullName && <p className="text-[11px] text-red-500 mt-1">{errors.fullName}</p>}
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               <Mail className="w-3 h-3 inline mr-1" />Email
             </label>
             <input
@@ -173,18 +173,18 @@ function UserModal({
               value={form.email}
               {...field("email")}
               placeholder="email@nuinf.mil.br"
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.email ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.email ? "border-red-400" : "border-border"}`}
             />
             {errors.email && <p className="text-[11px] text-red-500 mt-1">{errors.email}</p>}
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               <Shield className="w-3 h-3 inline mr-1" />Perfil de Acesso
             </label>
             <select
               value={form.role}
               {...field("role")}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.role ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.role ? "border-red-400" : "border-border"}`}
             >
               <option value="">Selecione o perfil</option>
               {[...assignableRoles]
@@ -196,7 +196,7 @@ function UserModal({
             {errors.role && <p className="text-[11px] text-red-500 mt-1">{errors.role}</p>}
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               {user ? "Nova Senha (deixe vazio para não alterar)" : "Senha"}
             </label>
             <input
@@ -204,12 +204,12 @@ function UserModal({
               value={form.password}
               {...field("password")}
               placeholder={user ? "Nova senha (opcional)" : "Mín. 8 chars"}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.password ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.password ? "border-red-400" : "border-border"}`}
             />
             {errors.password && <p className="text-[11px] text-red-500 mt-1">{errors.password}</p>}
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               {user ? "Confirmar Nova Senha" : "Confirmar Senha"}
             </label>
             <input
@@ -217,7 +217,7 @@ function UserModal({
               value={form.passwordConfirm}
               {...field("passwordConfirm")}
               placeholder={user ? "Repita a nova senha (opcional)" : "Repita a senha"}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.passwordConfirm ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.passwordConfirm ? "border-red-400" : "border-border"}`}
             />
             {errors.passwordConfirm && <p className="text-[11px] text-red-500 mt-1">{errors.passwordConfirm}</p>}
           </div>
@@ -227,14 +227,14 @@ function UserModal({
                 type="checkbox"
                 checked={form.enabled}
                 onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
-                className="w-4 h-4 rounded border-gray-300 text-primary"
+                className="w-4 h-4 rounded border-border text-primary"
               />
-              <span className="text-[13px] text-gray-600" style={{ fontWeight: 500 }}>Conta ativa</span>
+              <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Conta ativa</span>
             </label>
           )}
         </div>
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-          <button onClick={onClose} disabled={isSaving} className="px-5 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg text-[13px] transition-colors" style={{ fontWeight: 500 }}>
+        <div className="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3">
+          <button onClick={onClose} disabled={isSaving} className="px-5 py-2.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-lg text-[13px] transition-colors" style={{ fontWeight: 500 }}>
             Cancelar
           </button>
           <button onClick={handleSubmit} disabled={isSaving} className="px-5 py-2.5 bg-primary hover:bg-[#075985] text-white rounded-lg text-[13px] shadow-sm transition-all flex items-center gap-2 disabled:opacity-60" style={{ fontWeight: 600 }}>
@@ -367,40 +367,40 @@ export function UsuariosPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[13px]">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
+              <tr className="border-b border-border bg-muted">
                 {["Nome", "Usuario", "Email", "Perfil", "Status", "Acoes"].map((h, i) => (
-                  <th key={h} className={`px-4 md:px-6 py-3.5 text-[10px] text-gray-400 uppercase tracking-wider ${i === 5 ? "text-right" : ""}`} style={{ fontWeight: 700 }}>
+                  <th key={h} className={`px-4 md:px-6 py-3.5 text-[10px] text-muted-foreground uppercase tracking-wider ${i === 5 ? "text-right" : ""}`} style={{ fontWeight: 700 }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     {Array.from({ length: 6 }).map((__, j) => (
-                      <td key={j} className="px-4 md:px-6 py-3.5"><div className="h-4 bg-gray-100 rounded" /></td>
+                      <td key={j} className="px-4 md:px-6 py-3.5"><div className="h-4 bg-muted rounded" /></td>
                     ))}
                   </tr>
                 ))
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-[14px] text-gray-400" style={{ fontWeight: 500 }}>Nenhum usuário encontrado</p>
+                    <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>Nenhum usuário encontrado</p>
                   </td>
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id} className="hover:bg-sky-50/30 transition-colors">
+                  <tr key={u.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-4 md:px-6 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <User className="w-4 h-4 text-primary" />
                         </div>
                         <span className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>{u.fullName}</span>
@@ -424,11 +424,11 @@ export function UsuariosPage() {
                           {togglingId === u.id ? (
                             <div className="flex items-center gap-1.5">
                               <div className="w-5 h-5 border-2 border-sky-300 border-t-primary rounded-full animate-spin" />
-                              <span className="text-[12px] text-gray-500" style={{ fontWeight: 500 }}>Alterando...</span>
+                              <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Alterando...</span>
                             </div>
                           ) : justToggledId === u.id ? (
                             <div className="flex items-center gap-1.5 text-emerald-600 animate-pulse">
-                              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100">
+                              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
                                 <Check className="w-3.5 h-3.5" strokeWidth={3} />
                               </span>
                               <span className="text-[12px]" style={{ fontWeight: 500 }}>
@@ -442,8 +442,8 @@ export function UsuariosPage() {
                             </>
                           ) : (
                             <>
-                              <ToggleLeft className="w-5 h-5 text-gray-400" />
-                              <span className="text-[12px] text-gray-400" style={{ fontWeight: 500 }}>Inativo</span>
+                              <ToggleLeft className="w-5 h-5 text-muted-foreground" />
+                              <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Inativo</span>
                             </>
                           )}
                         </button>
@@ -458,14 +458,14 @@ export function UsuariosPage() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => { setEditingUser(u); setModalOpen(true); }}
-                            className="p-2 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-all"
+                            className="p-2 text-muted-foreground hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-lg transition-all"
                             title="Editar"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(u)}
-                            className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                            className="p-2 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-all"
                             title="Excluir"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -484,20 +484,20 @@ export function UsuariosPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-gray-50/50 px-4 md:px-6 py-3 border-t border-gray-100 flex items-center justify-between">
+          <div className="bg-muted/50 px-4 md:px-6 py-3 border-t border-border flex items-center justify-between">
             <span className="text-[12px] text-muted-foreground">
               Total: <span style={{ fontWeight: 600 }}>{data?.totalElements}</span> usuário(s)
             </span>
             <div className="flex items-center gap-1">
-              <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="p-2 rounded-lg text-gray-400 hover:text-foreground hover:bg-gray-100 disabled:opacity-30 transition-colors">
+              <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors">
                 <ChevronLeft className="w-4 h-4" />
               </button>
               {Array.from({ length: totalPages }, (_, i) => i).map((i) => (
-                <button key={i} onClick={() => setPage(i)} className={`w-8 h-8 rounded-lg text-[13px] transition-all ${page === i ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100"}`} style={{ fontWeight: page === i ? 600 : 400 }}>
+                <button key={i} onClick={() => setPage(i)} className={`w-8 h-8 rounded-lg text-[13px] transition-all ${page === i ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`} style={{ fontWeight: page === i ? 600 : 400 }}>
                   {i + 1}
                 </button>
               ))}
-              <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="p-2 rounded-lg text-gray-400 hover:text-foreground hover:bg-gray-100 disabled:opacity-30 transition-colors">
+              <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>

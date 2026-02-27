@@ -55,13 +55,13 @@ export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
 };
 
 export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, { bg: string; text: string; border: string }> = {
-  DISPONIVEL: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  EM_USO: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  PROVISORIO: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  INSERVIVEL: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-  MANUTENCAO: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  BAIXADO: { bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200' },
-  EXCLUIDO: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
+  DISPONIVEL: { bg: 'bg-emerald-50 dark:bg-emerald-950/50', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800' },
+  EM_USO: { bg: 'bg-sky-50 dark:bg-sky-950/50', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-800' },
+  PROVISORIO: { bg: 'bg-purple-50 dark:bg-purple-950/50', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-800' },
+  INSERVIVEL: { bg: 'bg-red-50 dark:bg-red-950/50', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' },
+  MANUTENCAO: { bg: 'bg-amber-50 dark:bg-amber-950/50', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
+  BAIXADO: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
+  EXCLUIDO: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200 dark:border-slate-700' },
 };
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
@@ -72,10 +72,10 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export const USER_ROLE_COLORS: Record<UserRole, { bg: string; text: string; border: string }> = {
-  ADMIN: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  USER: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
-  VIEWER: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  DEV: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+  ADMIN: { bg: 'bg-sky-50 dark:bg-sky-950/50', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-800' },
+  USER: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
+  VIEWER: { bg: 'bg-amber-50 dark:bg-amber-950/50', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
+  DEV: { bg: 'bg-violet-50 dark:bg-violet-950/50', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-800' },
 };
 
 export function shouldShowUserField(status: EquipmentStatus): boolean {
@@ -170,16 +170,16 @@ export const AUDIT_ACTION_LABELS: Record<AuditActionType, string> = {
 };
 
 export const AUDIT_ACTION_COLORS: Record<AuditActionType, { bg: string; text: string; dot: string }> = {
-  EQUIPMENT_CREATE: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  EQUIPMENT_UPDATE: { bg: 'bg-sky-50', text: 'text-sky-700', dot: 'bg-sky-500' },
-  EQUIPMENT_DELETE: { bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' },
-  EQUIPMENT_SWAP: { bg: 'bg-violet-50', text: 'text-violet-700', dot: 'bg-violet-500' },
-  EQUIPMENT_TRANSFER: { bg: 'bg-indigo-50', text: 'text-indigo-700', dot: 'bg-indigo-500' },
-  USER_CREATE: { bg: 'bg-teal-50', text: 'text-teal-700', dot: 'bg-teal-500' },
-  USER_UPDATE: { bg: 'bg-cyan-50', text: 'text-cyan-700', dot: 'bg-cyan-500' },
-  USER_DELETE: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
-  LOGIN: { bg: 'bg-gray-50', text: 'text-gray-600', dot: 'bg-gray-400' },
-  LOGOUT: { bg: 'bg-gray-50', text: 'text-gray-500', dot: 'bg-gray-300' },
+  EQUIPMENT_CREATE: { bg: 'bg-emerald-50 dark:bg-emerald-950/50', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
+  EQUIPMENT_UPDATE: { bg: 'bg-sky-50 dark:bg-sky-950/50', text: 'text-sky-700 dark:text-sky-300', dot: 'bg-sky-500' },
+  EQUIPMENT_DELETE: { bg: 'bg-rose-50 dark:bg-rose-950/50', text: 'text-rose-700 dark:text-rose-300', dot: 'bg-rose-500' },
+  EQUIPMENT_SWAP: { bg: 'bg-violet-50 dark:bg-violet-950/50', text: 'text-violet-700 dark:text-violet-300', dot: 'bg-violet-500' },
+  EQUIPMENT_TRANSFER: { bg: 'bg-indigo-50 dark:bg-indigo-950/50', text: 'text-indigo-700 dark:text-indigo-300', dot: 'bg-indigo-500' },
+  USER_CREATE: { bg: 'bg-teal-50 dark:bg-teal-950/50', text: 'text-teal-700 dark:text-teal-300', dot: 'bg-teal-500' },
+  USER_UPDATE: { bg: 'bg-cyan-50 dark:bg-cyan-950/50', text: 'text-cyan-700 dark:text-cyan-300', dot: 'bg-cyan-500' },
+  USER_DELETE: { bg: 'bg-red-50 dark:bg-red-950/50', text: 'text-red-700 dark:text-red-300', dot: 'bg-red-500' },
+  LOGIN: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400', dot: 'bg-gray-400 dark:bg-gray-500' },
+  LOGOUT: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-300 dark:bg-gray-500' },
 };
 
 export interface AuditLog {

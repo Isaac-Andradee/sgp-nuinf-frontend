@@ -80,7 +80,7 @@ function SectorModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-border">
         <div className="bg-[#0c4a6e] px-6 py-4 flex justify-between items-center">
           <h3 className="text-white text-[16px]" style={{ fontWeight: 600 }}>
             {sector ? "Editar Setor" : "Novo Setor"}
@@ -91,7 +91,7 @@ function SectorModal({
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               Sigla (Ex: NUINF, GAB)
             </label>
             <input
@@ -99,28 +99,28 @@ function SectorModal({
               onChange={(e) => { setAcronym(e.target.value.toUpperCase()); setErrors((p) => { const n = {...p}; delete n.acronym; return n; }); }}
               placeholder="Sigla do setor"
               maxLength={20}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all uppercase ${errors.acronym ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all uppercase ${errors.acronym ? "border-red-400" : "border-border"}`}
             />
             {errors.acronym && <p className="text-[11px] text-red-500 mt-1">{errors.acronym}</p>}
           </div>
           <div>
-            <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
+            <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               Nome Completo
             </label>
             <input
               value={fullName}
               onChange={(e) => { setFullName(e.target.value); setErrors((p) => { const n = {...p}; delete n.fullName; return n; }); }}
               placeholder="Nome completo do setor"
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-gray-200"}`}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-border"}`}
             />
             {errors.fullName && <p className="text-[11px] text-red-500 mt-1">{errors.fullName}</p>}
           </div>
         </div>
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+        <div className="px-6 py-4 bg-muted border-t border-border flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="px-5 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg text-[13px] transition-colors"
+            className="px-5 py-2.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-lg text-[13px] transition-colors"
             style={{ fontWeight: 500 }}
           >
             Cancelar
@@ -208,10 +208,10 @@ export function SetoresPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 mb-3" />
-              <div className="h-4 bg-gray-100 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-3/4" />
+            <div key={i} className="bg-card rounded-xl border border-border p-5 animate-pulse">
+              <div className="w-10 h-10 rounded-xl bg-muted mb-3" />
+              <div className="h-4 bg-muted rounded w-1/2 mb-2" />
+              <div className="h-3 bg-muted rounded w-3/4" />
             </div>
           ))}
         </div>
@@ -220,24 +220,24 @@ export function SetoresPage() {
           {setores.map((setor) => (
             <div
               key={setor.id}
-              className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-sky-200 transition-all duration-200 group"
+              className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-sky-200 dark:hover:border-sky-600 transition-all duration-200 group"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-primary/10 flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-primary" />
                 </div>
                 {canManageSectors && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={() => handleEdit(setor)}
-                      className="p-2 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-all"
+                      className="p-2 text-muted-foreground hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-lg transition-all"
                       title="Editar"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(setor.id)}
-                      className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                      className="p-2 text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-all"
                       title="Excluir"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -255,12 +255,12 @@ export function SetoresPage() {
           {canManageSectors && (
             <button
               onClick={() => { setEditingSector(null); setModalOpen(true); }}
-              className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-5 hover:border-sky-300 hover:bg-sky-50/30 transition-all duration-200 flex flex-col items-center justify-center gap-2 min-h-[130px]"
+              className="bg-muted rounded-xl border-2 border-dashed border-border p-5 hover:border-sky-300 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 transition-all duration-200 flex flex-col items-center justify-center gap-2 min-h-[130px]"
             >
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-                <Plus className="w-5 h-5 text-gray-400" />
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Plus className="w-5 h-5 text-muted-foreground" />
               </div>
-              <span className="text-[13px] text-gray-400" style={{ fontWeight: 500 }}>
+              <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
                 Adicionar Setor
               </span>
             </button>

@@ -53,8 +53,8 @@ export function ConfirmDialog({
 
   const colors =
     variant === "danger"
-      ? { icon: "text-rose-600", iconBg: "bg-rose-100", btn: "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20", border: "border-rose-200" }
-      : { icon: "text-amber-600", iconBg: "bg-amber-100", btn: "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20", border: "border-amber-200" };
+      ? { icon: "text-rose-600 dark:text-rose-400", iconBg: "bg-rose-100 dark:bg-rose-950/60", btn: "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 shadow-rose-600/20", border: "border-rose-200 dark:border-rose-800" }
+      : { icon: "text-amber-600 dark:text-amber-400", iconBg: "bg-amber-100 dark:bg-amber-950/60", btn: "bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 shadow-amber-600/20", border: "border-amber-200 dark:border-amber-800" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -66,11 +66,11 @@ export function ConfirmDialog({
 
       {/* Dialog */}
       <div
-        className="relative w-full max-w-[420px] bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-[420px] bg-card rounded-2xl shadow-2xl overflow-hidden border border-border"
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
         {/* Header colorido */}
-        <div className={`p-5 border-b ${colors.border} bg-gray-50/80`}>
+        <div className={`p-5 border-b ${colors.border} bg-muted/80`}>
           <div className="flex items-start gap-3">
             <div className={`w-9 h-9 rounded-xl ${colors.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
               {variant === "danger" ? (
@@ -80,14 +80,14 @@ export function ConfirmDialog({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[15px] text-gray-900" style={{ fontWeight: 700 }}>
+              <h3 className="text-[15px] text-foreground" style={{ fontWeight: 700 }}>
                 {title}
               </h3>
-              <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">{message}</p>
+              <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">{message}</p>
             </div>
             <button
               onClick={onCancel}
-              className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors flex-shrink-0"
+              className="text-muted-foreground hover:text-foreground p-1 rounded-lg transition-colors flex-shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -98,9 +98,9 @@ export function ConfirmDialog({
         <div className="p-5 space-y-4">
           {requirePhrase && (
             <div>
-              <label className="block text-[12px] text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>
+              <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
                 Para confirmar, digite{" "}
-                <span className="font-mono text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded" style={{ fontWeight: 700 }}>
+                <span className="font-mono text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-1.5 py-0.5 rounded" style={{ fontWeight: 700 }}>
                   {requirePhrase}
                 </span>{" "}
                 abaixo:
@@ -112,7 +112,7 @@ export function ConfirmDialog({
                 onChange={(e) => setPhrase(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && canConfirm && !loading) onConfirm(); }}
                 placeholder={requirePhrase}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-[13px] outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10 transition-all font-mono"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-[13px] bg-background outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10 transition-all font-mono"
                 autoComplete="off"
                 spellCheck={false}
               />
@@ -123,7 +123,7 @@ export function ConfirmDialog({
             <button
               onClick={onCancel}
               disabled={loading}
-              className="flex-1 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-[13px] transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 border border-border text-muted-foreground hover:bg-muted rounded-xl text-[13px] transition-colors disabled:opacity-50"
               style={{ fontWeight: 500 }}
             >
               {cancelLabel}

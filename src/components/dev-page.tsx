@@ -28,9 +28,9 @@ const API_URL     = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081/
 
 function InfoRow({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
-      <span className="text-[12px] text-gray-400" style={{ fontWeight: 500 }}>{label}</span>
-      <span className={`text-[12px] text-gray-700 ${mono ? "font-mono bg-gray-50 px-2 py-0.5 rounded" : ""}`} style={{ fontWeight: mono ? 400 : 600 }}>
+    <div className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
+      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{label}</span>
+      <span className={`text-[12px] text-foreground ${mono ? "font-mono bg-muted px-2 py-0.5 rounded" : ""}`} style={{ fontWeight: mono ? 400 : 600 }}>
         {value}
       </span>
     </div>
@@ -101,8 +101,8 @@ export function DevPage() {
     <div className="p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
       <div className="mb-6 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-          <Terminal className="w-5 h-5 text-violet-700" />
+        <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center flex-shrink-0">
+          <Terminal className="w-5 h-5 text-violet-700 dark:text-violet-400" />
         </div>
         <div>
           <h3 className="text-[18px] text-foreground" style={{ fontWeight: 700 }}>
@@ -114,7 +114,7 @@ export function DevPage() {
         </div>
 
         {/* Badge de acesso restrito */}
-        <div className="ml-auto shrink-0 flex items-center gap-1.5 bg-violet-50 border border-violet-200 text-violet-700 text-[11px] px-2.5 py-1.5 rounded-lg" style={{ fontWeight: 600 }}>
+        <div className="ml-auto shrink-0 flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-[11px] px-2.5 py-1.5 rounded-lg" style={{ fontWeight: 600 }}>
           <Code2 className="w-3.5 h-3.5" />
           Acesso DEV
         </div>
@@ -124,19 +124,19 @@ export function DevPage() {
 
         {/* ── Card: Modo Manutenção ── */}
         <div className="lg:col-span-2">
-          <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${isMaintenanceActive ? "border-rose-200" : "border-gray-200"}`}>
-            <div className={`px-5 py-4 border-b flex items-center gap-3 ${isMaintenanceActive ? "border-rose-100 bg-rose-50/40" : "border-gray-100 bg-gray-50/50"}`}>
-              <Wrench className={`w-4 h-4 ${isMaintenanceActive ? "text-rose-600" : "text-gray-500"}`} />
+          <div className={`bg-card rounded-xl border shadow-sm overflow-hidden ${isMaintenanceActive ? "border-rose-200 dark:border-rose-800" : "border-border"}`}>
+            <div className={`px-5 py-4 border-b flex items-center gap-3 ${isMaintenanceActive ? "border-rose-100 dark:border-rose-800 bg-rose-50/40 dark:bg-rose-950/40" : "border-border bg-muted/50"}`}>
+              <Wrench className={`w-4 h-4 ${isMaintenanceActive ? "text-rose-600" : "text-muted-foreground"}`} />
               <h4 className="text-[14px] text-foreground" style={{ fontWeight: 700 }}>
                 Controle de Manutenção
               </h4>
               {loadingStatus ? (
-                <div className="ml-auto w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+                <div className="ml-auto w-4 h-4 border-2 border-border border-t-primary rounded-full animate-spin" />
               ) : (
                 <div className="ml-auto flex items-center gap-2">
                   <StatusDot active={isMaintenanceActive} />
                   <span
-                    className={`text-[12px] ${isMaintenanceActive ? "text-rose-600" : "text-emerald-600"}`}
+                    className={`text-[12px] ${isMaintenanceActive ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}
                     style={{ fontWeight: 600 }}
                   >
                     {isMaintenanceActive ? "ATIVO" : "INATIVO"}
@@ -147,26 +147,26 @@ export function DevPage() {
 
             <div className="p-5">
               {isMaintenanceActive ? (
-                <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-100 rounded-xl mb-5">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800 rounded-xl mb-5">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[13px] text-rose-800" style={{ fontWeight: 600 }}>
+                    <p className="text-[13px] text-rose-800 dark:text-rose-200" style={{ fontWeight: 600 }}>
                       Sistema em manutenção
                     </p>
-                    <p className="text-[12px] text-rose-600 mt-0.5 leading-relaxed">
+                    <p className="text-[12px] text-rose-600 dark:text-rose-400 mt-0.5 leading-relaxed">
                       Todos os usuários estão sendo redirecionados para a tela de manutenção.
-                      Apenas este painel e o endpoint <code className="font-mono bg-rose-100 px-1 rounded">GET /setup</code> estão acessíveis.
+                      Apenas este painel e o endpoint <code className="font-mono bg-rose-100 dark:bg-rose-900/50 px-1 rounded">GET /setup</code> estão acessíveis.
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-3 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 rounded-xl mb-5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[13px] text-emerald-800" style={{ fontWeight: 600 }}>
+                    <p className="text-[13px] text-emerald-800 dark:text-emerald-200" style={{ fontWeight: 600 }}>
                       Sistema operacional
                     </p>
-                    <p className="text-[12px] text-emerald-600 mt-0.5 leading-relaxed">
+                    <p className="text-[12px] text-emerald-600 dark:text-emerald-400 mt-0.5 leading-relaxed">
                       Todos os serviços estão funcionando normalmente. O frontend faz polling a cada 30s quando em manutenção.
                     </p>
                   </div>
@@ -198,24 +198,24 @@ export function DevPage() {
                 <button
                   onClick={() => queryClient.invalidateQueries({ queryKey: ["maintenance-status"] })}
                   disabled={loadingStatus}
-                  className="flex items-center gap-2 border border-gray-200 text-gray-500 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-[13px] transition-all"
+                  className="flex items-center gap-2 border border-border text-muted-foreground hover:bg-muted px-4 py-2.5 rounded-xl text-[13px] transition-all"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loadingStatus ? "animate-spin" : ""}`} />
                   Atualizar status
                 </button>
               </div>
 
-              <p className="mt-3 text-[11px] text-gray-400">
+              <p className="mt-3 text-[11px] text-muted-foreground">
                 Status atualizado automaticamente a cada 10 segundos.
               </p>
             </div>
           </div>
 
           {/* ── Card: Acesso Rápido ── */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm mt-5">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="bg-card rounded-xl border border-border border-border shadow-sm mt-5">
+            <div className="px-5 py-4 border-b border-border bg-muted/50">
               <h4 className="text-[14px] text-foreground flex items-center gap-2" style={{ fontWeight: 700 }}>
-                <ExternalLink className="w-4 h-4 text-gray-500" />
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 Acesso Rápido
               </h4>
             </div>
@@ -225,28 +225,28 @@ export function DevPage() {
                   label: "Log de Auditoria",
                   description: "Histórico completo de ações do sistema",
                   icon: ShieldCheck,
-                  color: "text-sky-600 bg-sky-50",
+                  color: "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50",
                   action: () => navigate("/auditoria"),
                 },
                 {
                   label: "Gestão de Usuários",
                   description: "Criar, editar e gerenciar usuários",
                   icon: Users,
-                  color: "text-violet-600 bg-violet-50",
+                  color: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50",
                   action: () => navigate("/usuarios"),
                 },
                 {
                   label: "Dashboard",
                   description: "Visão geral dos equipamentos",
                   icon: Cpu,
-                  color: "text-emerald-600 bg-emerald-50",
+                  color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
                   action: () => navigate("/"),
                 },
                 {
                   label: "API Backend",
                   description: API_URL,
                   icon: Server,
-                  color: "text-amber-600 bg-amber-50",
+                  color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50",
                   action: () => window.open(API_URL.replace("/api", "/swagger-ui.html"), "_blank"),
                 },
               ].map((item) => {
@@ -255,18 +255,18 @@ export function DevPage() {
                   <button
                     key={item.label}
                     onClick={item.action}
-                    className="flex items-center gap-3 p-3.5 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-all text-left"
+                    className="flex items-center gap-3 p-3.5 rounded-xl border border-border hover:border-border hover:bg-muted/50 transition-all text-left"
                   >
                     <div className={`w-9 h-9 rounded-lg ${item.color} flex items-center justify-center flex-shrink-0`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[13px] text-gray-700" style={{ fontWeight: 600 }}>
+                      <p className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>
                         {item.label}
                       </p>
-                      <p className="text-[11px] text-gray-400 truncate">{item.description}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{item.description}</p>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-gray-300 ml-auto flex-shrink-0" />
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground ml-auto flex-shrink-0" />
                   </button>
                 );
               })}
@@ -277,10 +277,10 @@ export function DevPage() {
         {/* ── Coluna direita: Info do sistema ── */}
         <div className="space-y-5">
           {/* Frontend info */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="bg-card rounded-xl border border-border border-border shadow-sm">
+            <div className="px-5 py-4 border-b border-border bg-muted/50">
               <h4 className="text-[14px] text-foreground flex items-center gap-2" style={{ fontWeight: 700 }}>
-                <Code2 className="w-4 h-4 text-gray-500" />
+                <Code2 className="w-4 h-4 text-muted-foreground" />
                 Frontend
               </h4>
             </div>
@@ -296,52 +296,52 @@ export function DevPage() {
           </div>
 
           {/* Backend info */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <div className="bg-card rounded-xl border border-border border-border shadow-sm">
+            <div className="px-5 py-4 border-b border-border bg-muted/50 flex items-center justify-between">
               <h4 className="text-[14px] text-foreground flex items-center gap-2" style={{ fontWeight: 700 }}>
-                <Database className="w-4 h-4 text-gray-500" />
+                <Database className="w-4 h-4 text-muted-foreground" />
                 Backend
               </h4>
-              <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded" style={{ fontWeight: 600 }}>
+              <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded" style={{ fontWeight: 600 }}>
                 via /dev/system/info
               </span>
             </div>
             <div className="px-5 py-2">
               <InfoRow label="Status API"   value={
-                <span className="flex items-center gap-1.5 text-emerald-600" style={{ fontWeight: 600 }}>
+                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" style={{ fontWeight: 600 }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
                   Online
                 </span>
               } />
               <InfoRow label="Manutenção" value={
                 isMaintenanceActive
-                  ? <span className="text-rose-600" style={{ fontWeight: 600 }}>Ativa</span>
-                  : <span className="text-emerald-600" style={{ fontWeight: 600 }}>Inativa</span>
+                  ? <span className="text-rose-600 dark:text-rose-400" style={{ fontWeight: 600 }}>Ativa</span>
+                  : <span className="text-emerald-600 dark:text-emerald-400" style={{ fontWeight: 600 }}>Inativa</span>
               } />
             </div>
           </div>
 
           {/* Atalhos de teclado */}
-          <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
-            <p className="text-[12px] text-violet-700 flex items-center gap-1.5 mb-3" style={{ fontWeight: 700 }}>
+          <div className="bg-violet-50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-800 rounded-xl p-4">
+            <p className="text-[12px] text-violet-700 dark:text-violet-300 flex items-center gap-1.5 mb-3" style={{ fontWeight: 700 }}>
               <Clock className="w-3.5 h-3.5" />
               Comportamentos automáticos
             </p>
-            <ul className="space-y-2 text-[12px] text-violet-600">
+            <ul className="space-y-2 text-[12px] text-violet-600 dark:text-violet-400">
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 dark:bg-violet-500 mt-1.5 flex-shrink-0" />
                 Status de manutenção atualizado a cada <strong>10s</strong>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 dark:bg-violet-500 mt-1.5 flex-shrink-0" />
                 Tela de manutenção faz polling no backend a cada <strong>30s</strong>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 dark:bg-violet-500 mt-1.5 flex-shrink-0" />
                 Sessão expira após <strong>15min</strong> de inatividade
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 dark:bg-violet-500 mt-1.5 flex-shrink-0" />
                 Aviso de expiração aparece com <strong>2min</strong> de antecedência
               </li>
             </ul>
