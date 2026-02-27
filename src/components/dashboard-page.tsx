@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Package,
@@ -65,7 +65,7 @@ function getTypeIcon(tipo: EquipmentType) {
 
 const EQUIPMENT_STATUS_TOOLTIPS: Record<EquipmentStatus, string> = {
   DISPONIVEL: "Disponível — não alocado, pronto para uso",
-  INDISPONIVEL: "Indisponível — aguardando destinação ou descarte",
+  INSERVIVEL: "Inservível — aguardando destinação ou descarte",
   PROVISORIO: "Provisório — sem etiqueta patrimonial, pendente de regularização",
   EM_USO: "Em Uso — alocado a um usuário ou setor",
   MANUTENCAO: "Em Manutenção — enviado para reparo",
@@ -101,7 +101,9 @@ export function DashboardPage() {
   const [filterSetorId, setFilterSetorId] = useState("");
   const [filterTipo, setFilterTipo] = useState<EquipmentType | "">("");
   const [filterStatus, setFilterStatus] = useState<EquipmentStatus | "">("");
+  const [filterStatusSource, setFilterStatusSource] = useState<"pcs" | "equipamentos" | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const tableSectionRef = useRef<HTMLDivElement>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<EquipmentResponseDTO | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EquipmentResponseDTO | null>(null);
@@ -127,12 +129,12 @@ export function DashboardPage() {
     staleTime: 60_000,
   });
 
-  const hasFilters = !!(search || filterSetorId || filterTipo || filterStatus);
+  const hasFilters = !!(search || filterSetorId || filterTipo || filterStatus || filterStatusSource === "pcs");
 
   const filterBody: EquipmentFilterDTO = {
     ...(search ? { textoBusca: search } : {}),
     ...(filterSetorId ? { setorId: filterSetorId } : {}),
-    ...(filterTipo ? { tipo: filterTipo } : {}),
+    ...(filterStatusSource === "pcs" ? { tipo: "PC" } : filterTipo ? { tipo: filterTipo } : {}),
     ...(filterStatus ? { status: filterStatus } : {}),
   };
 
@@ -207,6 +209,7 @@ export function DashboardPage() {
     setFilterSetorId("");
     setFilterTipo("");
     setFilterStatus("");
+    setFilterStatusSource(null);
     setCurrentPage(0);
     setSelectedSector(null);
   };
@@ -230,6 +233,7 @@ export function DashboardPage() {
 
   // Ao clicar em um tipo no breakdown: filtra por setor + tipo
   const handleTypeClick = (tipo: EquipmentType) => {
+    setFilterStatusSource(null);
     if (filterTipo === tipo) {
       setFilterTipo("");
     } else {
@@ -271,61 +275,30 @@ export function DashboardPage() {
     ? Math.ceil((filteredList?.length ?? 0) / ITEMS_PER_PAGE)
     : (pagedData?.totalPages ?? 0);
 
-  const kpiCards = [
-    {
-      label: "Disponiveis",
-      value: kpis?.totalDisponivel ?? "-",
-      icon: Package,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-      border: "border-emerald-500",
-      status: "DISPONIVEL" as EquipmentStatus,
-    },
-    {
-      label: "Em Uso",
-      value: kpis?.totalAtivos ?? "-",
-      icon: Users,
-      color: "text-sky-600",
-      bg: "bg-sky-50",
-      border: "border-sky-500",
-      status: "EM_USO" as EquipmentStatus,
-    },
-    {
-      label: "Manutencao",
-      value: kpis?.totalManutencao ?? "-",
-      icon: Wrench,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-      border: "border-amber-500",
-      status: "MANUTENCAO" as EquipmentStatus,
-    },
-    {
-      label: "Provisorios",
-      value: kpis?.totalProvisorio ?? "-",
-      icon: AlertTriangle,
-      color: "text-rose-600",
-      bg: "bg-rose-50",
-      border: "border-rose-500",
-      status: "PROVISORIO" as EquipmentStatus,
-    },
-    // Card "Excluídos" — visível apenas para ADMIN/DEV
-    ...(isAdmin
-      ? [
-        {
-          label: "Excluidos",
-          value: kpis?.totalExcluido ?? "-",
-          icon: Archive,
-          color: "text-slate-600",
-          bg: "bg-slate-50",
-          border: "border-slate-500",
-          status: "EXCLUIDO" as EquipmentStatus,
-        },
-      ]
-      : []),
+  const kpiPcsTotalCard = { label: "Total de PCs", value: kpis?.kpiPcs?.totalGeral ?? "-", icon: Monitor, color: "text-primary", bg: "bg-sky-50", border: "border-primary" };
+  const kpiPcsCards = [
+    { label: "PCs Disponiveis", value: kpis?.kpiPcs?.totalDisponivel ?? "-", icon: Package, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-500", status: "DISPONIVEL" as EquipmentStatus },
+    { label: "PCs em Uso", value: kpis?.kpiPcs?.totalEmUso ?? "-", icon: Users, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-500", status: "EM_USO" as EquipmentStatus },
+    { label: "PCs Manutencao", value: kpis?.kpiPcs?.totalManutencao ?? "-", icon: Wrench, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-500", status: "MANUTENCAO" as EquipmentStatus },
+    { label: "PCs Provisorios", value: kpis?.kpiPcs?.totalProvisorio ?? "-", icon: AlertTriangle, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-500", status: "PROVISORIO" as EquipmentStatus },
+    { label: "PCs Baixado", value: kpis?.kpiPcs?.totalBaixado ?? "-", icon: Archive, color: "text-gray-600", bg: "bg-gray-50", border: "border-gray-400", status: "BAIXADO" as EquipmentStatus },
+    ...(isAdmin ? [{ label: "PCs Excluidos", value: kpis?.kpiPcs?.totalExcluido ?? "-", icon: Archive, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-500", status: "EXCLUIDO" as EquipmentStatus }] : []),
+    { label: "PCs Inserviveis", value: kpis?.kpiPcs?.totalInservivel ?? "-", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-500", status: "INSERVIVEL" as EquipmentStatus },
   ];
 
-  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "MOUSE", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR"];
-  const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
+  const kpiEquipamentosTotalCard = { label: "Total de Equipamentos", value: kpis?.kpiEquipamentos?.totalGeral ?? "-", icon: Package, color: "text-primary", bg: "bg-sky-50", border: "border-primary" };
+  const kpiEquipamentosCards = [
+    { label: "Disponiveis", value: kpis?.kpiEquipamentos?.totalDisponivel ?? "-", icon: Package, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-500", status: "DISPONIVEL" as EquipmentStatus },
+    { label: "Em Uso", value: kpis?.kpiEquipamentos?.totalEmUso ?? "-", icon: Users, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-500", status: "EM_USO" as EquipmentStatus },
+    { label: "Manutencao", value: kpis?.kpiEquipamentos?.totalManutencao ?? "-", icon: Wrench, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-500", status: "MANUTENCAO" as EquipmentStatus },
+    { label: "Provisorios", value: kpis?.kpiEquipamentos?.totalProvisorio ?? "-", icon: AlertTriangle, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-500", status: "PROVISORIO" as EquipmentStatus },
+    { label: "Baixado", value: kpis?.kpiEquipamentos?.totalBaixado ?? "-", icon: Archive, color: "text-gray-600", bg: "bg-gray-50", border: "border-gray-400", status: "BAIXADO" as EquipmentStatus },
+    ...(isAdmin ? [{ label: "Excluidos", value: kpis?.kpiEquipamentos?.totalExcluido ?? "-", icon: Archive, color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-500", status: "EXCLUIDO" as EquipmentStatus }] : []),
+    { label: "Inserviveis", value: kpis?.kpiEquipamentos?.totalInservivel ?? "-", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", border: "border-red-500", status: "INSERVIVEL" as EquipmentStatus },
+  ];
+
+  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "OUTROS"];
+  const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
   return (
     <div className="p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -336,7 +309,7 @@ export function DashboardPage() {
             Inventario de Ativos
           </h3>
           <p className="text-[13px] text-muted-foreground mt-0.5">
-            Gerencie todos os equipamentos da unidade
+            Gerencie todos os PCs da unidade
           </p>
         </div>
         <div className="flex gap-2.5 w-full md:w-auto">
@@ -367,43 +340,133 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className={`grid grid-cols-2 ${isAdmin ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-3 md:gap-4 mb-6`}>
-        {kpiCards.map((kpi) => {
-          const Icon = kpi.icon;
-          const isSelected = filterStatus === kpi.status;
-          return (
-            <div
-              key={kpi.label}
-              onClick={() => {
-                if (isSelected) {
-                  setFilterStatus("");
-                  setCurrentPage(0);
-                } else {
-                  setFilterStatus(kpi.status);
-                  setCurrentPage(0);
-                  setSelectedSector(null);
-                  setFilterSetorId("");
-                  setFilterTipo("");
-                }
-              }}
-              className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-                }`}
-            >
-              <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
-                  {kpi.label}
-                </p>
-                <p className="text-[24px] text-foreground mt-1" style={{ fontWeight: 700 }}>
-                  {kpisLoading ? <span className="animate-pulse text-gray-300">--</span> : kpi.value}
-                </p>
-              </div>
-              <div className={`w-10 h-10 rounded-xl ${kpi.bg} ${kpi.color} flex items-center justify-center`}>
-                <Icon className="w-5 h-5" />
-              </div>
+      {/* KPI Cards — Métricas de PCs (bloco principal: destaque visual + hierarquia) */}
+      <div className="mb-6 rounded-xl border-l-4 border-primary bg-sky-50/70 p-4 md:p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Monitor className="w-4 h-4 text-primary" />
+          </div>
+          <p className="text-[13px] text-primary uppercase tracking-wider" style={{ fontWeight: 700 }}>
+            Metricas de PCs
+          </p>
+        </div>
+        <p className="text-[11px] text-sky-700/90 mb-3 ml-10">
+          Apenas computadores.
+        </p>
+        <div className={`grid grid-cols-2 ${isAdmin ? "lg:grid-cols-8" : "lg:grid-cols-7"} gap-3 md:gap-4`}>
+          {/* Card Total de PCs (métrica geral) — clicável: filtra tabela só por tipo PC */}
+          <div
+            onClick={() => {
+              const isTotalPcsSelected = filterStatusSource === "pcs" && filterStatus === "";
+              if (isTotalPcsSelected) {
+                setFilterStatus(""); setFilterStatusSource(null); setCurrentPage(0);
+              } else {
+                setFilterStatus(""); setFilterStatusSource("pcs"); setCurrentPage(0); setSelectedSector(null); setFilterSetorId(""); setFilterTipo("");
+                setTimeout(() => tableSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+              }
+            }}
+            className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] border-primary flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${filterStatusSource === "pcs" && filterStatus === "" ? "ring-2 ring-primary ring-offset-2" : ""}`}
+          >
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>{kpiPcsTotalCard.label}</p>
+              <p className="text-[24px] text-foreground mt-1" style={{ fontWeight: 700 }}>
+                {kpisLoading ? <span className="animate-pulse text-gray-300">--</span> : kpiPcsTotalCard.value}
+              </p>
             </div>
-          );
-        })}
+            <div className={`w-10 h-10 rounded-xl ${kpiPcsTotalCard.bg} ${kpiPcsTotalCard.color} flex items-center justify-center`}>
+              <Monitor className="w-5 h-5" />
+            </div>
+          </div>
+          {kpiPcsCards.map((kpi) => {
+            const Icon = kpi.icon;
+            const isSelected = filterStatus === kpi.status && filterStatusSource === "pcs";
+            return (
+              <div
+                key={`pcs-${kpi.label}`}
+                onClick={() => {
+                  if (isSelected) { setFilterStatus(""); setFilterStatusSource(null); setCurrentPage(0); } else {
+                    setFilterStatus(kpi.status); setFilterStatusSource("pcs"); setCurrentPage(0); setSelectedSector(null); setFilterSetorId(""); setFilterTipo("");
+                    setTimeout(() => tableSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+                  }
+                }}
+                className={`bg-white rounded-xl p-4 md:p-5 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}`}
+              >
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>{kpi.label}</p>
+                  <p className="text-[24px] text-foreground mt-1" style={{ fontWeight: 700 }}>
+                    {kpisLoading ? <span className="animate-pulse text-gray-300">--</span> : kpi.value}
+                  </p>
+                </div>
+                <div className={`w-10 h-10 rounded-xl ${kpi.bg} ${kpi.color} flex items-center justify-center`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* KPI Cards — Métricas de Equipamentos (bloco secundário: estilo distinto) */}
+      <div className="mb-6 rounded-xl border-l-4 border-slate-300 bg-gray-50/80 p-4 md:p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-8 h-8 rounded-lg bg-slate-200/80 flex items-center justify-center">
+            <Box className="w-4 h-4 text-slate-600" />
+          </div>
+          <p className="text-[13px] text-slate-600 uppercase tracking-wider" style={{ fontWeight: 700 }}>
+            Metricas de todos os equipamentos
+          </p>
+        </div>
+        <p className="text-[11px] text-slate-500 mb-3 ml-10">
+          Resumo geral (PCs, monitores, impressoras, etc.).
+        </p>
+        <div className={`grid grid-cols-2 ${isAdmin ? "lg:grid-cols-8" : "lg:grid-cols-7"} gap-2.5 md:gap-3`}>
+          {/* Card Total de Equipamentos (métrica geral) — clicável: remove filtros de card e mostra todos */}
+          <div
+            onClick={() => {
+              const isTotalEqSelected = filterStatus === "" && filterStatusSource === null && filterTipo === "";
+              if (isTotalEqSelected) return;
+              setFilterStatus(""); setFilterStatusSource(null); setFilterTipo(""); setCurrentPage(0); setSelectedSector(null); setFilterSetorId("");
+              setTimeout(() => tableSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+            }}
+            className={`bg-white rounded-lg p-3 md:p-4 border-l-[3px] border-slate-400 flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${filterStatus === "" && filterStatusSource === null && filterTipo === "" ? "ring-2 ring-primary ring-offset-2" : ""}`}
+          >
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>{kpiEquipamentosTotalCard.label}</p>
+              <p className="text-[20px] text-foreground mt-0.5" style={{ fontWeight: 700 }}>
+                {kpisLoading ? <span className="animate-pulse text-gray-300">--</span> : kpiEquipamentosTotalCard.value}
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <Box className="w-4 h-4" />
+            </div>
+          </div>
+          {kpiEquipamentosCards.map((kpi) => {
+            const Icon = kpi.icon;
+            const isSelected = filterStatus === kpi.status && filterStatusSource === "equipamentos";
+            return (
+              <div
+                key={`eq-${kpi.label}`}
+                onClick={() => {
+                  if (isSelected) { setFilterStatus(""); setFilterStatusSource(null); setCurrentPage(0); } else {
+                    setFilterStatus(kpi.status); setFilterStatusSource("equipamentos"); setCurrentPage(0); setSelectedSector(null); setFilterSetorId(""); setFilterTipo("");
+                    setTimeout(() => tableSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+                  }
+                }}
+                className={`bg-white rounded-lg p-3 md:p-4 border-l-[3px] ${kpi.border} flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}`}
+              >
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>{kpi.label}</p>
+                  <p className="text-[20px] text-foreground mt-0.5" style={{ fontWeight: 700 }}>
+                    {kpisLoading ? <span className="animate-pulse text-gray-300">--</span> : kpi.value}
+                  </p>
+                </div>
+                <div className={`w-9 h-9 rounded-lg ${kpi.bg} ${kpi.color} flex items-center justify-center`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Stats Panel */}
@@ -413,7 +476,7 @@ export function DashboardPage() {
           <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h4 className="text-[13px] text-gray-400 uppercase tracking-wider" style={{ fontWeight: 700 }}>
-                Distribuicao por Setor
+                Distribuicao de Equipamentos por Setor
               </h4>
               <div className="flex items-center gap-3">
                 {selectedSector && (
@@ -429,14 +492,14 @@ export function DashboardPage() {
                 <span className="text-[12px] text-muted-foreground">
                   Total:{" "}
                   <span className="text-foreground" style={{ fontWeight: 700 }}>
-                    {kpis?.totalGeral ?? "-"}
+                    {kpis?.kpiEquipamentos?.totalGeral ?? "-"}
                   </span>
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {(sectorStats ?? []).map((s) => {
-                const pct = (kpis?.totalGeral ?? 0) > 0 ? Math.round((s.totalItens / (kpis?.totalGeral ?? 1)) * 100) : 0;
+                const pct = (kpis?.kpiEquipamentos?.totalGeral ?? 0) > 0 ? Math.round((s.totalItens / (kpis?.kpiEquipamentos?.totalGeral ?? 1)) * 100) : 0;
                 const isSelected = selectedSector?.acronym === s.acronym;
                 return (
                   <button
@@ -550,7 +613,7 @@ export function DashboardPage() {
       )}
 
       {/* Table section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div ref={tableSectionRef} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-4">
         {/* Filters */}
         <div className="p-4 border-b border-gray-100 bg-gray-50/50">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -593,8 +656,8 @@ export function DashboardPage() {
                 Tipo
               </label>
               <select
-                value={filterTipo}
-                onChange={(e) => { setFilterTipo(e.target.value as EquipmentType | ""); setCurrentPage(0); }}
+                value={filterStatusSource === "pcs" ? "PC" : filterTipo}
+                onChange={(e) => { setFilterStatusSource(null); setFilterTipo(e.target.value as EquipmentType | ""); setCurrentPage(0); }}
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
               >
                 <option value="">Todos</option>
@@ -611,7 +674,7 @@ export function DashboardPage() {
               </label>
               <select
                 value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value as EquipmentStatus | ""); setCurrentPage(0); }}
+                onChange={(e) => { setFilterStatus(e.target.value as EquipmentStatus | ""); setFilterStatusSource(null); setCurrentPage(0); }}
                 className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-sky-400 text-[13px] outline-none bg-white"
               >
                 <option value="">Todos</option>

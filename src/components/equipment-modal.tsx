@@ -19,16 +19,16 @@ interface Props {
   sectors: SectorResponseDTO[];
 }
 
-const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "MOUSE", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "OUTROS"];
-const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
+const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "OUTROS"];
+const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
 type FormState = {
   assetNumber: string;
   serialNumber: string;
   brand: string;
   description: string;
-  type: EquipmentType;
-  status: EquipmentStatus;
+  type: EquipmentType | "";
+  status: EquipmentStatus | "";
   sectorId: string;
   equipmentUser: string;
   hostname: string;
@@ -41,8 +41,8 @@ const emptyForm: FormState = {
   serialNumber: "",
   brand: "",
   description: "",
-  type: "PC",
-  status: "DISPONIVEL",
+  type: "",
+  status: "",
   sectorId: "",
   equipmentUser: "",
   hostname: "",
@@ -103,7 +103,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       setNoAsset(isEquipmentWithoutAsset(equipment.assetNumber, equipment.id));
       setAssetInputValue(assetNum.replace(/\D/g, ""));
     } else {
-      setForm({ ...emptyForm, sectorId: sectors[0]?.id ?? "" });
+      setForm({ ...emptyForm });
       setNoAsset(false);
       setAssetInputValue("");
     }
@@ -157,7 +157,9 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       }
     }
     if (!form.brand.trim()) e.brand = "Marca obrigatória";
-    if (!form.sectorId) e.sectorId = "Setor obrigatório";
+    if (!form.type) e.type = "Selecione o tipo de equipamento";
+    if (!form.status) e.status = "Selecione o status";
+    if (!form.sectorId) e.sectorId = "Selecione o setor";
     if (form.networkMode === "FIXO" && form.ipAddress) {
       const ipValue = form.ipAddress.trim();
       if (!ipValue) {
@@ -193,8 +195,10 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     if (form.networkMode === "DHCP") {
       ipToSend = "DHCP";
     } else if (form.networkMode === "FIXO" && form.ipAddress.trim()) {
-      // Monta o IP completo com o prefixo fixo
-      ipToSend = `10.190.110.${form.ipAddress.trim()}`;
+      // Normaliza zeros à esquerda (ex.: 013 → 13) antes de enviar ao backend
+      const raw = form.ipAddress.trim();
+      const num = /^\d+$/.test(raw) ? String(parseInt(raw, 10)) : raw;
+      ipToSend = `10.190.110.${num}`;
     } else if (form.ipAddress.trim()) {
       ipToSend = form.ipAddress.trim();
     } else {
@@ -206,12 +210,10 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       serialNumber: form.serialNumber.trim() || undefined,
       brand: form.brand.trim(),
       description: form.description.trim() || undefined,
-      type: form.type,
-      status: form.status,
+      type: form.type as EquipmentType,
+      status: form.status as EquipmentStatus,
       sectorId: form.sectorId,
-      equipmentUser: shouldShowUserField(form.status)
-        ? form.equipmentUser.trim() || undefined
-        : undefined,
+      equipmentUser: form.status ? shouldShowUserField(form.status as EquipmentStatus) ? form.equipmentUser.trim() || undefined : undefined : undefined,
       hostname: form.hostname.trim() || undefined,
       ipAddress: ipToSend,
     };
@@ -226,7 +228,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
   if (!open) return null;
 
   const isEditing = !!equipment;
-  const showUser = shouldShowUserField(form.status);
+  const showUser = form.status ? shouldShowUserField(form.status as EquipmentStatus) : false;
   const shouldShowNetwork =
     form.type === "PC" || form.type === "NOTEBOOK" || form.type === "SERVIDOR" || form.type === "ROTEADOR" || form.type === "IMPRESSORA";
 
@@ -368,15 +370,17 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               </label>
               <select
                 value={form.type}
-                onChange={(e) => handleChange("type", e.target.value as EquipmentType)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
+                onChange={(e) => handleChange("type", e.target.value as EquipmentType | "")}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.type ? "border-red-400" : "border-gray-200"}`}
               >
+                <option value="">Selecione o tipo</option>
                 {[...EQUIPMENT_TYPES]
                   .sort((a, b) => EQUIPMENT_TYPE_LABELS[a].localeCompare(EQUIPMENT_TYPE_LABELS[b]))
                   .map((t) => (
                     <option key={t} value={t}>{EQUIPMENT_TYPE_LABELS[t]}</option>
                   ))}
               </select>
+              {errors.type && <p className="text-[11px] text-red-500 mt-1">{errors.type}</p>}
             </div>
             <div>
               <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>
@@ -387,6 +391,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
                 onChange={(e) => handleChange("sectorId", e.target.value)}
                 className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.sectorId ? "border-red-400" : "border-gray-200"}`}
               >
+                <option value="">Selecione o setor</option>
                 {[...sectors]
                   .sort((a, b) => `${a.acronym} - ${a.fullName}`.localeCompare(`${b.acronym} - ${b.fullName}`))
                   .map((s) => (
@@ -406,15 +411,17 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
             </label>
             <select
               value={form.status}
-              onChange={(e) => handleChange("status", e.target.value as EquipmentStatus)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
+              onChange={(e) => handleChange("status", e.target.value as EquipmentStatus | "")}
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.status ? "border-red-400" : "border-gray-200"}`}
             >
+              <option value="">Selecione o status</option>
               {[...EQUIPMENT_STATUSES]
                 .sort((a, b) => EQUIPMENT_STATUS_LABELS[a].localeCompare(EQUIPMENT_STATUS_LABELS[b]))
                 .map((s) => (
                   <option key={s} value={s}>{EQUIPMENT_STATUS_LABELS[s]}</option>
                 ))}
             </select>
+            {errors.status && <p className="text-[11px] text-red-500 mt-1">{errors.status}</p>}
           </div>
 
           {/* Responsável */}

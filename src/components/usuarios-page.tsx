@@ -43,15 +43,15 @@ function UserModal({
     ? (Object.keys(USER_ROLE_LABELS) as UserRole[])
     : (Object.keys(USER_ROLE_LABELS) as UserRole[]).filter((r) => r !== "DEV");
   const [form, setForm] = useState<{
-    username: string; password: string; passwordConfirm: string; email: string; fullName: string; role: UserRole; enabled: boolean;
-  }>({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "USER", enabled: true });
+    username: string; password: string; passwordConfirm: string; email: string; fullName: string; role: UserRole | ""; enabled: boolean;
+  }>({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
       setForm({ username: user.username, password: "", passwordConfirm: "", email: user.email, fullName: user.fullName, role: user.role, enabled: user.enabled ?? true });
     } else {
-      setForm({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "USER", enabled: true });
+      setForm({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
     }
     setErrors({});
   }, [user, open]);
@@ -91,6 +91,7 @@ function UserModal({
     }
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email inválido";
     if (!form.fullName.trim()) e.fullName = "Nome obrigatório";
+    if (!user && !form.role) e.role = "Selecione o perfil de acesso";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -101,7 +102,7 @@ function UserModal({
       const payload: UpdateUserRequest = {
         email: form.email.trim(),
         fullName: form.fullName.trim(),
-        role: form.role,
+        role: form.role as UserRole,
         enabled: form.enabled,
         ...(form.password ? { password: form.password } : {}),
       };
@@ -112,7 +113,7 @@ function UserModal({
         password: form.password,
         email: form.email.trim(),
         fullName: form.fullName.trim(),
-        role: form.role,
+        role: form.role as UserRole,
       });
     }
   };
@@ -183,14 +184,16 @@ function UserModal({
             <select
               value={form.role}
               {...field("role")}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white"
+              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-white ${errors.role ? "border-red-400" : "border-gray-200"}`}
             >
+              <option value="">Selecione o perfil</option>
               {[...assignableRoles]
                 .sort((a, b) => USER_ROLE_LABELS[a].localeCompare(USER_ROLE_LABELS[b]))
                 .map((r) => (
                   <option key={r} value={r}>{USER_ROLE_LABELS[r]}</option>
                 ))}
             </select>
+            {errors.role && <p className="text-[11px] text-red-500 mt-1">{errors.role}</p>}
           </div>
           <div>
             <label className="block text-[11px] text-gray-400 mb-1.5" style={{ fontWeight: 600 }}>

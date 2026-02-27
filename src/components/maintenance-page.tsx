@@ -59,12 +59,21 @@ export function MaintenancePage() {
   usePageTitle("Sistema em Manutenção");
   const navigate = useNavigate();
 
-  const maintenanceDateStr = import.meta.env.VITE_MAINTENANCE_DATE ?? "";
+  // VITE_MAINTENANCE_DATE = previsão de retorno (fim da manutenção). VITE_MAINTENANCE_DATE_START = opcional, início da janela (ex.: 21:30).
+  const maintenanceDateEndStr = import.meta.env.VITE_MAINTENANCE_DATE ?? "";
+  const maintenanceDateStartStr = import.meta.env.VITE_MAINTENANCE_DATE_START ?? "";
   const targetDate = useMemo(
-    () => (maintenanceDateStr ? new Date(maintenanceDateStr) : null),
-    [maintenanceDateStr]
+    () => (maintenanceDateEndStr ? new Date(maintenanceDateEndStr) : null),
+    [maintenanceDateEndStr]
+  );
+  const startDate = useMemo(
+    () => (maintenanceDateStartStr ? new Date(maintenanceDateStartStr) : null),
+    [maintenanceDateStartStr]
   );
   const countdown = useCountdown(targetDate);
+
+  const formatDateTime = (d: Date) =>
+    d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
   const [checking, setChecking] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
@@ -154,11 +163,23 @@ export function MaintenancePage() {
             <br />O sistema voltará em breve.
           </p>
 
-          {/* Countdown — só aparece se VITE_MAINTENANCE_DATE está definida */}
+          {/* Janela de manutenção (opcional): "Das 21:30 às 22:30" quando VITE_MAINTENANCE_DATE_START e VITE_MAINTENANCE_DATE estão definidas */}
+          {startDate && targetDate && !isNaN(startDate.getTime()) && !isNaN(targetDate.getTime()) && (
+            <div className="mb-4 p-3 bg-white/10 rounded-xl border border-white/20">
+              <p className="text-[11px] text-sky-300/70 uppercase tracking-widest mb-1" style={{ fontWeight: 700 }}>
+                Janela de manutenção
+              </p>
+              <p className="text-[14px] text-white" style={{ fontWeight: 500 }}>
+                Das {formatDateTime(startDate)} às {formatDateTime(targetDate)}
+              </p>
+            </div>
+          )}
+
+          {/* Countdown até o fim da manutenção (VITE_MAINTENANCE_DATE = previsão de retorno / fim) */}
           {countdown && !countdown.expired && (
             <div className="mb-8">
               <p className="text-[11px] text-sky-300/70 uppercase tracking-widest mb-3" style={{ fontWeight: 700 }}>
-                Previsão de retorno
+                Previsão de retorno (fim da manutenção)
               </p>
               <div className="grid grid-cols-4 gap-2">
                 {[
@@ -183,7 +204,7 @@ export function MaintenancePage() {
           {countdown?.expired && (
             <div className="mb-6 p-3 bg-emerald-500/20 border border-emerald-400/40 rounded-xl">
               <p className="text-emerald-300 text-[13px]" style={{ fontWeight: 500 }}>
-                O tempo previsto passou. Verificando se o sistema voltou...
+                O horário previsto de retorno já passou. Verificando se o sistema voltou...
               </p>
             </div>
           )}

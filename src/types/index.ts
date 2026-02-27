@@ -17,7 +17,7 @@ export type EquipmentType =
 
 export type EquipmentStatus =
   | 'DISPONIVEL'
-  | 'INDISPONIVEL'
+  | 'INSERVIVEL'
   | 'PROVISORIO'
   | 'EM_USO'
   | 'MANUTENCAO'
@@ -42,7 +42,7 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
 
 export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
   DISPONIVEL: 'Disponível',
-  INDISPONIVEL: 'Indisponível',
+  INSERVIVEL: 'Inservível',
   PROVISORIO: 'Provisório',
   EM_USO: 'Em Uso',
   MANUTENCAO: 'Manutenção',
@@ -54,7 +54,7 @@ export const EQUIPMENT_STATUS_COLORS: Record<EquipmentStatus, { bg: string; text
   DISPONIVEL: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   EM_USO: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
   PROVISORIO: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  INDISPONIVEL: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  INSERVIVEL: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
   MANUTENCAO: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   BAIXADO: { bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200' },
   EXCLUIDO: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
@@ -317,14 +317,21 @@ export interface CreateDefectRequest {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
-export interface DashboardStatsDTO {
+/** Bloco de métricas (PCs ou equipamentos): contagens por status. */
+export interface KpiBlockDTO {
   totalDisponivel: number;
-  totalIndisponivel: number;
-  totalAtivos: number;
-  totalManutencao: number;
+  totalEmUso: number;
   totalProvisorio: number;
+  totalManutencao: number;
+  totalBaixado: number;
   totalExcluido: number;
+  totalInservivel: number;
   totalGeral: number;
+}
+
+export interface DashboardStatsDTO {
+  kpiPcs: KpiBlockDTO;
+  kpiEquipamentos: KpiBlockDTO;
 }
 
 export interface SectorMetricDTO {

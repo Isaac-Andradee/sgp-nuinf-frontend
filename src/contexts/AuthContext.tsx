@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import type { ReactNode } from 'react';
 import type { UserResponse } from '../types';
 import { authApi } from '../api/auth.api';
-import { api } from '../api/client';
+import { api, setDevBypassMaintenance, isDevBypassMaintenance } from '../api/client';
 
 interface AuthContextValue {
   user: UserResponse | null;
@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.status === 200) {
         const me = response.data;
         if (me.enabled === false) {
+          setDevBypassMaintenance(false);
           setUser(null);
           if (window.location.pathname !== '/login' && window.location.pathname !== '/maintenance') {
             window.location.replace('/login');
@@ -36,7 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setUser(me);
+        setDevBypassMaintenance(me.role === 'DEV');
       } else {
+        setDevBypassMaintenance(false);
         setUser(null);
       }
     } catch (err: unknown) {
@@ -44,11 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isMaintenance = status === 503 || (typeof status === 'number' && status >= 500 && status < 600);
       if (isMaintenance) {
         is503 = true;
-        if (window.location.pathname !== '/maintenance') {
+        // Backend libera DEV em manutenção; não redirecionar nem limpar user se for DEV (ou se estiver em /dev).
+        const path = window.location.pathname;
+        if (path !== '/maintenance' && path !== '/dev' && !isDevBypassMaintenance()) {
+          setDevBypassMaintenance(false);
           window.location.replace('/maintenance');
+        } else {
+          setIsLoading(false);
         }
         return;
       }
+      setDevBypassMaintenance(false);
       setUser(null);
     } finally {
       if (!is503) setIsLoading(false);
@@ -70,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignora erro
     } finally {
+      setDevBypassMaintenance(false);
       setUser(null);
     }
   };

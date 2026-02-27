@@ -14,10 +14,8 @@ import { equipmentApi } from "../api/equipment.api";
 import { sectorApi } from "../api/sector.api";
 import type { EquipmentResponseDTO, EquipmentStatus } from "../types";
 import {
-  EQUIPMENT_TYPE_LABELS,
   EQUIPMENT_STATUS_LABELS,
   shouldShowUserField,
-  isEquipmentWithoutAsset,
   getEquipmentShortLabel,
   getEquipmentDropdownSecondary,
 } from "../types";
@@ -25,7 +23,7 @@ import { toast } from "sonner";
 
 type Tab = "transfer" | "swap";
 
-const TRANSFER_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INDISPONIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO"];
+const TRANSFER_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO"];
 
 function useEquipmentSearch(query: string, excludeId?: string) {
   const [results, setResults] = useState<EquipmentResponseDTO[]>([]);

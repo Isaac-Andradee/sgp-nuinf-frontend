@@ -8,14 +8,23 @@ export const api = axios.create({
   timeout: 30000,
 });
 
+/** Backend libera DEV em manutenção; o front não redireciona para /maintenance quando o usuário é DEV. */
+let devBypassMaintenance = false;
+export function setDevBypassMaintenance(value: boolean) {
+  devBypassMaintenance = value;
+}
+export function isDevBypassMaintenance(): boolean {
+  return devBypassMaintenance;
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
     const currentPath = window.location.pathname;
 
-    // 503 Service Unavailable → sistema em manutenção (replace para não depender só do reload)
-    if (status === 503 && currentPath !== '/maintenance') {
+    // 503 Service Unavailable → sistema em manutenção. Não redireciona se: já está em /maintenance, está em /dev, ou usuário é DEV (backend dá acesso total em manutenção).
+    if (status === 503 && currentPath !== '/maintenance' && currentPath !== '/dev' && !devBypassMaintenance) {
       window.location.replace('/maintenance');
       return Promise.reject(error);
     }
