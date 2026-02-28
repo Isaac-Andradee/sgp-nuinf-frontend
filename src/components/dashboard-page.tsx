@@ -527,11 +527,16 @@ export function DashboardPage() {
                         {isSelected && <ChevronDown className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 mt-1" />}
                       </div>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-1.5 mb-1.5">
-                      <div
-                        className={`h-1.5 rounded-full transition-all duration-500 ${isSelected ? "bg-sky-500 dark:bg-sky-400" : "bg-sky-400 dark:bg-sky-500"}`}
-                        style={{ width: `${pct}%` }}
-                      />
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="flex-1 min-w-0 bg-muted rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-500 ${isSelected ? "bg-sky-500 dark:bg-sky-400" : "bg-sky-400 dark:bg-sky-500"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground tabular-nums font-medium flex-shrink-0" title={`${pct}% do total de equipamentos`}>
+                        {pct}%
+                      </span>
                     </div>
                     <p className="text-[10px] text-muted-foreground truncate">{s.fullName}</p>
                   </button>
