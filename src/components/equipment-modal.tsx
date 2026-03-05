@@ -90,6 +90,22 @@ function validateHostname(value: string): string | null {
   return null;
 }
 
+/** Responsável: opcional; se preenchido, apenas letras (Unicode), espaços, hífens e apóstrofos; máx. 100 caracteres. */
+const EQUIPMENT_USER_REGEX = /^[\p{L}\s\-']+$/u;
+const EQUIPMENT_USER_MAX = 100;
+
+function validateEquipmentUser(value: string): string | null {
+  const t = value.trim();
+  if (!t) return null;
+  if (t.length > EQUIPMENT_USER_MAX) return "Máx. 100 caracteres.";
+  if (!EQUIPMENT_USER_REGEX.test(t)) return "Nome deve conter apenas letras, espaços, hífens ou apóstrofos (ex.: Maria da Silva, Jean-Pierre).";
+  return null;
+}
+
+function toTitleCase(s: string): string {
+  return s.trim().replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
 export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [noAsset, setNoAsset] = useState(false);
@@ -164,6 +180,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         else if (field === "sectorId") err = validateSectorId(String(value), isEditing);
         else if (field === "ipAddress") err = validateIpAddress(String(value), next.networkMode);
         else if (field === "hostname") err = validateHostname(String(value));
+        else if (field === "equipmentUser") err = validateEquipmentUser(String(value));
         if (err) e[field] = err; else delete e[field];
         if (field === "networkMode") {
           const ipErr = validateIpAddress(next.ipAddress, value as FormState["networkMode"]);
@@ -190,6 +207,9 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       } else if (msg && (msg.includes("patrimônio") || msg.includes("patrimonio") || msg.toLowerCase().includes("asset"))) {
         setErrors((prev) => ({ ...prev, assetNumber: msg }));
         toast.error(msg);
+      } else if (msg && (msg.includes("Nome deve conter") || msg.includes("letras, espaços"))) {
+        setErrors((prev) => ({ ...prev, equipmentUser: msg }));
+        toast.error(msg);
       } else {
         toast.error(msg || "Erro ao cadastrar equipamento.");
       }
@@ -205,9 +225,15 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     },
     onError: (err: unknown) => {
       const axErr = err as { response?: { data?: { message?: string; validationErrors?: Record<string, string> } } };
+      const msg = axErr?.response?.data?.message ?? "";
       const valErrors = axErr?.response?.data?.validationErrors;
       if (valErrors) setErrors(valErrors);
-      else toast.error(axErr?.response?.data?.message ?? "Erro ao atualizar equipamento.");
+      else if (msg && (msg.includes("Nome deve conter") || msg.includes("letras, espaços"))) {
+        setErrors((prev) => ({ ...prev, equipmentUser: msg }));
+        toast.error(msg);
+      } else {
+        toast.error(msg || "Erro ao atualizar equipamento.");
+      }
     },
   });
 
@@ -242,6 +268,10 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     }
     if (form.hostname && /[^a-zA-Z0-9.-]/.test(form.hostname))
       e.hostname = "Hostname inválido (apenas letras, números, ponto e hífen)";
+    if (showUser && form.equipmentUser.trim()) {
+      const euErr = validateEquipmentUser(form.equipmentUser);
+      if (euErr) e.equipmentUser = euErr;
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -280,7 +310,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       type: form.type as EquipmentType,
       status: form.status as EquipmentStatus,
       sectorId: equipment ? equipment.currentSector.id : form.sectorId,
-      equipmentUser: form.status ? shouldShowUserField(form.status as EquipmentStatus) ? form.equipmentUser.trim() || undefined : undefined : undefined,
+      equipmentUser: form.status ? shouldShowUserField(form.status as EquipmentStatus) ? (form.equipmentUser.trim() ? toTitleCase(form.equipmentUser) : undefined) : undefined : undefined,
       hostname: form.hostname.trim() || undefined,
       ipAddress: ipToSend,
     };
@@ -534,9 +564,26 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               <input
                 value={form.equipmentUser}
                 onChange={(e) => handleChange("equipmentUser", e.target.value)}
-                placeholder="Nome do responsavel..."
-                className="w-full px-3 py-2.5 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all"
+                onBlur={() => {
+                  if (form.equipmentUser.trim()) {
+                    const formatted = toTitleCase(form.equipmentUser);
+                    if (formatted !== form.equipmentUser) {
+                      setForm((prev) => ({ ...prev, equipmentUser: formatted }));
+                      setErrors((prev) => {
+                        const n = { ...prev };
+                        const err = validateEquipmentUser(formatted);
+                        if (err) n.equipmentUser = err; else delete n.equipmentUser;
+                        return n;
+                      });
+                    }
+                  }
+                }}
+                placeholder="Ex.: Maria da Silva, Jean-Pierre"
+                maxLength={EQUIPMENT_USER_MAX}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all ${errors.equipmentUser ? "border-red-400" : "border-border"}`}
               />
+              {errors.equipmentUser && <p className="text-[11px] text-red-500 mt-1">{errors.equipmentUser}</p>}
+              <p className="text-[11px] text-muted-foreground mt-0.5">Apenas letras, espaços, hífens ou apóstrofos (máx. 100 caracteres).</p>
             </div>
           )}
 

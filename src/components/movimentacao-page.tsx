@@ -26,6 +26,22 @@ type Tab = "transfer" | "swap";
 
 const TRANSFER_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO"];
 
+/** Responsável (targetUser): opcional; se preenchido, apenas letras (Unicode), espaços, hífens e apóstrofos; máx. 100. */
+const TARGET_USER_REGEX = /^[\p{L}\s\-']+$/u;
+const TARGET_USER_MAX = 100;
+
+function validateTargetUser(value: string): string | null {
+  const t = value.trim();
+  if (!t) return null;
+  if (t.length > TARGET_USER_MAX) return "Máx. 100 caracteres.";
+  if (!TARGET_USER_REGEX.test(t)) return "Nome deve conter apenas letras, espaços, hífens ou apóstrofos (ex.: Maria da Silva, Jean-Pierre).";
+  return null;
+}
+
+function toTitleCase(s: string): string {
+  return s.trim().replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
 function useEquipmentSearch(query: string, excludeId?: string) {
   const [results, setResults] = useState<EquipmentResponseDTO[]>([]);
   const [loading, setLoading] = useState(false);
@@ -162,6 +178,7 @@ export function MovimentacaoPage() {
   const [moveDestSectorId, setMoveDestSectorId] = useState("");
   const [moveDestStatus, setMoveDestStatus] = useState<EquipmentStatus>("EM_USO");
   const [moveDestUser, setMoveDestUser] = useState("");
+  const [moveDestUserError, setMoveDestUserError] = useState<string | null>(null);
   const [moveDropdownOpen, setMoveDropdownOpen] = useState(false);
 
   // Swap state
@@ -196,10 +213,18 @@ export function MovimentacaoPage() {
       setMoveDestSectorId("");
       setMoveDestStatus("EM_USO");
       setMoveDestUser("");
+      setMoveDestUserError(null);
     },
     onError: (err: unknown) => {
       const axErr = err as { response?: { data?: { message?: string } } };
-      toast.error(axErr?.response?.data?.message ?? "Erro ao realizar transferência.");
+      const msg = axErr?.response?.data?.message ?? "";
+      if (msg && (msg.includes("Nome deve conter") || msg.includes("letras, espaços"))) {
+        setMoveDestUserError(msg);
+        toast.error(msg);
+      } else {
+        setMoveDestUserError(null);
+        toast.error(msg || "Erro ao realizar transferência.");
+      }
     },
   });
 
@@ -228,11 +253,23 @@ export function MovimentacaoPage() {
 
   const handleMoveConfirm = () => {
     if (!moveSelected || !moveDestSectorId) return;
+    if (shouldShowUserField(moveDestStatus) && moveDestUser.trim()) {
+      const err = validateTargetUser(moveDestUser);
+      if (err) {
+        setMoveDestUserError(err);
+        toast.error(err);
+        return;
+      }
+      setMoveDestUserError(null);
+    }
+    const targetUserValue = shouldShowUserField(moveDestStatus) && moveDestUser.trim()
+      ? toTitleCase(moveDestUser)
+      : undefined;
     moveMutation.mutate({
       equipmentId: moveSelected.id,
       targetSectorId: moveDestSectorId,
       targetStatus: moveDestStatus,
-      targetUser: shouldShowUserField(moveDestStatus) ? moveDestUser || undefined : undefined,
+      targetUser: targetUserValue,
     });
   };
 
@@ -342,7 +379,10 @@ export function MovimentacaoPage() {
                   </label>
                   <select
                     value={moveDestStatus}
-                    onChange={(e) => setMoveDestStatus(e.target.value as EquipmentStatus)}
+                    onChange={(e) => {
+                      setMoveDestStatus(e.target.value as EquipmentStatus);
+                      setMoveDestUserError(null);
+                    }}
                     className="w-full px-3 py-3 border border-border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background"
                   >
                     {[...TRANSFER_STATUSES]
@@ -358,15 +398,28 @@ export function MovimentacaoPage() {
               {shouldShowUserField(moveDestStatus) && (
                 <div>
                   <label className="block text-[11px] text-muted-foreground uppercase tracking-wider mb-2" style={{ fontWeight: 700 }}>
-                    Novo Responsavel (Opcional)
+                    Novo Responsavel
                   </label>
                   <input
                     value={moveDestUser}
-                    onChange={(e) => setMoveDestUser(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMoveDestUser(v);
+                      setMoveDestUserError(validateTargetUser(v));
+                    }}
+                    onBlur={() => {
+                      if (moveDestUser.trim()) {
+                        const formatted = toTitleCase(moveDestUser);
+                        if (formatted !== moveDestUser) setMoveDestUser(formatted);
+                      }
+                    }}
                     type="text"
-                    placeholder="Quem vai utilizar o equipamento?"
-                    className="w-full px-3 py-3 border border-border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all"
+                    placeholder="Ex.: Maria da Silva, Jean-Pierre"
+                    maxLength={TARGET_USER_MAX}
+                    className={`w-full px-3 py-3 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] bg-background transition-all ${moveDestUserError ? "border-red-400" : "border-border"}`}
                   />
+                  {moveDestUserError && <p className="text-[11px] text-red-500 mt-1">{moveDestUserError}</p>}
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Apenas letras, espaços, hífens ou apóstrofos (máx. 100 caracteres).</p>
                 </div>
               )}
 
