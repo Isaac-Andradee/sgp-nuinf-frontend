@@ -182,10 +182,17 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       onSaved();
     },
     onError: (err: unknown) => {
-      const axErr = err as { response?: { data?: { message?: string; validationErrors?: Record<string, string> } } };
+      const axErr = err as { response?: { status?: number; data?: { message?: string; validationErrors?: Record<string, string> } } };
+      const msg = axErr?.response?.data?.message ?? "";
       const valErrors = axErr?.response?.data?.validationErrors;
-      if (valErrors) setErrors(valErrors);
-      else toast.error(axErr?.response?.data?.message ?? "Erro ao cadastrar equipamento.");
+      if (valErrors) {
+        setErrors(valErrors);
+      } else if (msg && (msg.includes("patrimônio") || msg.includes("patrimonio") || msg.toLowerCase().includes("asset"))) {
+        setErrors((prev) => ({ ...prev, assetNumber: msg }));
+        toast.error(msg);
+      } else {
+        toast.error(msg || "Erro ao cadastrar equipamento.");
+      }
     },
   });
 
