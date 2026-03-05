@@ -51,6 +51,45 @@ const emptyForm: FormState = {
   networkMode: "",
 };
 
+function validateAssetNumber(value: string, noAsset: boolean): string | null {
+  if (noAsset) return null;
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "Patrimônio obrigatório (ou marque 'Sem etiqueta')";
+  if (digits.length > 7) return "Patrimônio deve ter no máximo 7 dígitos";
+  return null;
+}
+function validateBrand(value: string): string | null {
+  if (!value.trim()) return "Marca obrigatória";
+  return null;
+}
+function validateType(value: FormState["type"]): string | null {
+  if (!value) return "Selecione o tipo de equipamento";
+  return null;
+}
+function validateStatus(value: FormState["status"]): string | null {
+  if (!value) return "Selecione o status";
+  return null;
+}
+function validateSectorId(value: string, isEditing: boolean): string | null {
+  if (isEditing) return null;
+  if (!value) return "Selecione o setor";
+  return null;
+}
+function validateIpAddress(ipValue: string, networkMode: FormState["networkMode"]): string | null {
+  if (networkMode !== "FIXO" || !ipValue) return null;
+  const v = ipValue.trim();
+  if (!v) return "Digite os últimos dígitos do IP (ex: 10, 100, 255)";
+  if (!/^\d{1,3}$/.test(v)) return "Digite apenas números (1 a 3 dígitos)";
+  const num = parseInt(v, 10);
+  if (num < 1 || num > 255) return "O valor deve estar entre 1 e 255";
+  return null;
+}
+function validateHostname(value: string): string | null {
+  if (!value) return null;
+  if (/[^a-zA-Z0-9.-]/.test(value)) return "Hostname inválido (apenas letras, números, ponto e hífen)";
+  return null;
+}
+
 export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [noAsset, setNoAsset] = useState(false);
@@ -111,9 +150,29 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     setErrors({});
   }, [equipment, open, sectors]);
 
+  const isEditing = !!equipment;
   const handleChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      setErrors((errPrev) => {
+        const e = { ...errPrev };
+        let err: string | null = null;
+        if (field === "assetNumber") err = validateAssetNumber(String(value).replace(/\D/g, ""), noAsset);
+        else if (field === "brand") err = validateBrand(String(value));
+        else if (field === "type") err = validateType(value as FormState["type"]);
+        else if (field === "status") err = validateStatus(value as FormState["status"]);
+        else if (field === "sectorId") err = validateSectorId(String(value), isEditing);
+        else if (field === "ipAddress") err = validateIpAddress(String(value), next.networkMode);
+        else if (field === "hostname") err = validateHostname(String(value));
+        if (err) e[field] = err; else delete e[field];
+        if (field === "networkMode") {
+          const ipErr = validateIpAddress(next.ipAddress, value as FormState["networkMode"]);
+          if (ipErr) e.ipAddress = ipErr; else delete e.ipAddress;
+        }
+        return e;
+      });
+      return next;
+    });
   };
 
   const createMutation = useMutation({
@@ -228,7 +287,6 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
 
   if (!open) return null;
 
-  const isEditing = !!equipment;
   const showUser = form.status ? shouldShowUserField(form.status as EquipmentStatus) : false;
   const shouldShowNetwork =
     form.type === "PC" || form.type === "NOTEBOOK" || form.type === "SERVIDOR" || form.type === "ROTEADOR" || form.type === "IMPRESSORA";
@@ -254,8 +312,14 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
               type="checkbox"
               checked={noAsset}
               onChange={(e) => {
-                setNoAsset(e.target.checked);
-                // Não limpa o valor digitado: ao desmarcar, o patrimônio volta a aparecer
+                const checked = e.target.checked;
+                setNoAsset(checked);
+                setErrors((prev) => {
+                  const n = { ...prev };
+                  const err = validateAssetNumber(form.assetNumber.replace(/\D/g, ""), checked);
+                  if (err) n.assetNumber = err; else delete n.assetNumber;
+                  return n;
+                });
               }}
               className="mt-0.5 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
             />

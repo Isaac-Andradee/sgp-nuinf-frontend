@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, useLocation, Link } from "react-router";
 import { Network, User, Lock, ArrowRight, Eye, EyeOff, Timer } from "lucide-react";
 import axios from "axios";
 import { api } from "../api/client";
@@ -31,16 +31,30 @@ async function probeNeedsSetup(): Promise<boolean> {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
   const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
   usePageTitle("Login");
+
+  const setFieldError = (key: string, msg: string | null) => {
+    setFieldErrors((prev) => { const n = { ...prev }; if (msg) n[key] = msg; else delete n[key]; return n; });
+  };
+
+  // Pré-preenche usuário quando redirecionado do setup (backend retorna username gerado)
+  useEffect(() => {
+    const stateUsername = (location.state as { username?: string } | null)?.username;
+    if (stateUsername && typeof stateUsername === "string") {
+      setUsername(stateUsername);
+    }
+  }, [location.state]);
 
   // Countdown visual de rate limit
   useEffect(() => {
@@ -92,6 +106,10 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const userErr = !username.trim() ? "Preencha o usuário." : null;
+    const passErr = !password ? "Preencha a senha." : null;
+    setFieldErrors({ ...(userErr ? { username: userErr } : {}), ...(passErr ? { password: passErr } : {}) });
+    if (userErr || passErr) return;
     setLoading(true);
     try {
       await login(username, password);
@@ -187,12 +205,17 @@ export function LoginPage() {
                   <input
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setUsername(v);
+                      setFieldError("username", v.trim() ? null : "Preencha o usuário.");
+                    }}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
+                    className={`w-full pl-10 pr-4 py-3 bg-background border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px] ${fieldErrors.username ? "border-red-500 dark:border-red-500" : "border-border"}`}
                     placeholder="Digite seu usuario"
                   />
                 </div>
+                {fieldErrors.username && <p className="text-[11px] text-red-500 mt-1">{fieldErrors.username}</p>}
               </div>
               <div>
                 <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
@@ -203,9 +226,13 @@ export function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setPassword(v);
+                      setFieldError("password", v ? null : "Preencha a senha.");
+                    }}
                     required
-                    className="w-full pl-10 pr-11 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px]"
+                    className={`w-full pl-10 pr-11 py-3 bg-background border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px] ${fieldErrors.password ? "border-red-500 dark:border-red-500" : "border-border"}`}
                     placeholder="Digite sua senha"
                   />
                   <button
@@ -218,6 +245,7 @@ export function LoginPage() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {fieldErrors.password && <p className="text-[11px] text-red-500 mt-1">{fieldErrors.password}</p>}
               </div>
 
               <div className="text-right">

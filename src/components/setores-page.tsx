@@ -8,6 +8,20 @@ import { toast } from "sonner";
 
 const ACRONYM_REGEX = /^[A-Z0-9-]+$/;
 
+function validateAcronym(value: string): string | null {
+  const t = value.trim().toUpperCase();
+  if (!t) return "Sigla obrigatória";
+  if (t.length < 2 || t.length > 20) return "Sigla deve ter entre 2 e 20 caracteres";
+  if (!ACRONYM_REGEX.test(t)) return "Sigla deve conter apenas letras maiúsculas, números e hífen";
+  return null;
+}
+
+function validateSectorFullName(value: string): string | null {
+  if (!value.trim()) return "Nome obrigatório";
+  if (value.trim().length < 3) return "Nome deve ter pelo menos 3 caracteres";
+  return null;
+}
+
 function SectorModal({
   open,
   onClose,
@@ -96,7 +110,11 @@ function SectorModal({
             </label>
             <input
               value={acronym}
-              onChange={(e) => { setAcronym(e.target.value.toUpperCase()); setErrors((p) => { const n = {...p}; delete n.acronym; return n; }); }}
+              onChange={(e) => {
+                const v = e.target.value.toUpperCase();
+                setAcronym(v);
+                setErrors((p) => { const n = { ...p }; const err = validateAcronym(v); if (err) n.acronym = err; else delete n.acronym; return n; });
+              }}
               placeholder="Sigla do setor"
               maxLength={20}
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all uppercase ${errors.acronym ? "border-red-400" : "border-border"}`}
@@ -109,7 +127,11 @@ function SectorModal({
             </label>
             <input
               value={fullName}
-              onChange={(e) => { setFullName(e.target.value); setErrors((p) => { const n = {...p}; delete n.fullName; return n; }); }}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFullName(v);
+                setErrors((p) => { const n = { ...p }; const err = validateSectorFullName(v); if (err) n.fullName = err; else delete n.fullName; return n; });
+              }}
               placeholder="Nome completo do setor"
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-border"}`}
             />

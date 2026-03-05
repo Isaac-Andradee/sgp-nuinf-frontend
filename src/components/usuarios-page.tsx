@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, X, Users, Shield, Mail, User, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight, Check } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Pencil, Trash2, X, Users, Shield, Mail, User, ChevronLeft, ChevronRight, ToggleLeft, ToggleRight, Check, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../api/user.api";
+import { authApi } from "../api/auth.api";
 import type { UserResponse, UserRole, CreateUserRequest, UpdateUserRequest, PagedResponse } from "../types";
 import { USER_ROLE_LABELS } from "../types";
 import { useAuth } from "../contexts/AuthContext";
@@ -17,6 +18,50 @@ function canEditUser(actorRole: UserRole | undefined, targetUser: UserResponse):
 }
 
 const PASSWORD_REGEX = /^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).*$/;
+
+/** Nome completo: 1–100 caracteres; apenas letras (Unicode), espaços, hífens e apóstrofos. */
+const FULLNAME_REGEX = /^[\p{L}\s\-']+$/u;
+const FULLNAME_MAX = 100;
+
+/** Login preferido: um ponto (nome.sobrenome); sufixo opcional só com dígitos (ex.: maria.silva2). */
+const USERNAME_REGEX = /^[a-z]+\.[a-z]+[0-9]*$/;
+const USERNAME_MIN = 3;
+const USERNAME_MAX = 50;
+
+function validateFullName(value: string, required: boolean): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return required ? "Nome completo é obrigatório." : null;
+  if (trimmed.length < 1 || trimmed.length > FULLNAME_MAX) return "Nome completo deve ter entre 1 e 100 caracteres.";
+  if (!FULLNAME_REGEX.test(trimmed)) return "Nome completo deve conter apenas letras, espaços, hífens ou apóstrofos.";
+  return null;
+}
+
+function validateUsername(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length < USERNAME_MIN || trimmed.length > USERNAME_MAX) return "Login deve ter entre 3 e 50 caracteres.";
+  if (!USERNAME_REGEX.test(trimmed)) return "Login deve ser no formato nome.sobrenome ou nome.sobrenome2 (apenas um ponto; sufixo opcional só com dígitos).";
+  return null;
+}
+
+function validateEmail(value: string): string | null {
+  const t = value.trim();
+  if (!t) return "Email é obrigatório.";
+  if (!t.includes("@") || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "Email inválido.";
+  return null;
+}
+
+function validatePassword(value: string, required: boolean): string | null {
+  if (!value) return required ? "Senha obrigatória." : null;
+  if (!PASSWORD_REGEX.test(value)) return "Senha deve ter maiúscula, minúscula, número e caractere especial (mín. 8 chars).";
+  return null;
+}
+
+function validatePasswordConfirm(password: string, confirm: string, passwordRequired: boolean): string | null {
+  if (!confirm) return passwordRequired ? "Confirme a senha." : null;
+  if (password !== confirm) return "As senhas não coincidem.";
+  return null;
+}
 
 const ROLE_COLORS: Record<UserRole, string> = {
   ADMIN:  "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
@@ -43,26 +88,72 @@ function UserModal({
     ? (Object.keys(USER_ROLE_LABELS) as UserRole[])
     : (Object.keys(USER_ROLE_LABELS) as UserRole[]).filter((r) => r !== "DEV");
   const [form, setForm] = useState<{
-    username: string; password: string; passwordConfirm: string; email: string; fullName: string; role: UserRole | ""; enabled: boolean;
-  }>({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
+    password: string; passwordConfirm: string; email: string; fullName: string; role: UserRole | ""; enabled: boolean;
+  }>({ password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
+  const [preferredUsername, setPreferredUsername] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const suggestionsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setForm({ username: user.username, password: "", passwordConfirm: "", email: user.email, fullName: user.fullName, role: user.role, enabled: user.enabled ?? true });
+      setForm({ password: "", passwordConfirm: "", email: user.email, fullName: user.fullName, role: user.role, enabled: user.enabled ?? true });
+      setSuggestions([]);
+      setPreferredUsername("");
     } else {
-      setForm({ username: "", password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
+      setForm({ password: "", passwordConfirm: "", email: "", fullName: "", role: "", enabled: true });
+      setPreferredUsername("");
+      setSuggestions([]);
     }
     setErrors({});
   }, [user, open]);
 
+  // Sugestões de login ao criar usuário (debounce por fullName)
+  useEffect(() => {
+    if (user) return;
+    const fullName = form.fullName.trim();
+    if (!fullName || validateFullName(form.fullName, true) !== null) {
+      setSuggestions([]);
+      setPreferredUsername("");
+      return;
+    }
+    if (suggestionsTimerRef.current) clearTimeout(suggestionsTimerRef.current);
+    suggestionsTimerRef.current = setTimeout(async () => {
+      setSuggestionsLoading(true);
+      try {
+        const data = await authApi.suggestedUsernames(fullName);
+        setSuggestions(data.suggestions ?? []);
+        setPreferredUsername((prev) => (prev && (data.suggestions ?? []).includes(prev) ? prev : ""));
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 400);
+    return () => {
+      if (suggestionsTimerRef.current) clearTimeout(suggestionsTimerRef.current);
+    };
+  }, [user, form.fullName]);
+
   const createMutation = useMutation({
     mutationFn: (data: CreateUserRequest) => userApi.create(data),
-    onSuccess: () => { toast.success("Usuário criado com sucesso."); onSaved(); },
+    onSuccess: (data) => {
+      toast.success(`Usuário criado. Login: ${data.username}`);
+      onSaved();
+    },
     onError: (err: unknown) => {
       const axErr = err as { response?: { data?: { message?: string; validationErrors?: Record<string, string> } } };
-      if (axErr?.response?.data?.validationErrors) setErrors(axErr.response.data.validationErrors);
-      else toast.error(axErr?.response?.data?.message ?? "Erro ao criar usuário.");
+      const msg = axErr?.response?.data?.message as string | undefined;
+      if (msg?.includes("already taken") || msg?.toLowerCase().includes("username already taken")) {
+        setErrors((prev) => ({ ...prev, username: "Este login já está em uso. Escolha outra sugestão ou deixe o sistema escolher." }));
+      } else if (axErr?.response?.data?.validationErrors) {
+        setErrors(axErr.response.data.validationErrors);
+      } else {
+        toast.error(msg ?? "Erro ao criar usuário.");
+      }
     },
   });
 
@@ -81,16 +172,22 @@ function UserModal({
   const validate = (): boolean => {
     const e: Record<string, string> = {};
     if (!user) {
-      if (!form.username.trim() || form.username.length < 3) e.username = "Usuário deve ter pelo menos 3 caracteres";
       if (!form.password) e.password = "Senha obrigatória";
       else if (!PASSWORD_REGEX.test(form.password)) e.password = "Senha deve ter maiúscula, minúscula, número e caractere especial (mín. 8 chars)";
       if (form.password !== form.passwordConfirm) e.passwordConfirm = "As senhas não coincidem.";
+      const fnErr = validateFullName(form.fullName, true);
+      if (fnErr) e.fullName = fnErr;
+      const unErr = validateUsername(preferredUsername);
+      if (unErr) e.username = unErr;
     } else {
       if (form.password && !PASSWORD_REGEX.test(form.password)) e.password = "Senha deve ter maiúscula, minúscula, número e caractere especial (mín. 8 chars)";
       if (form.password && form.password !== form.passwordConfirm) e.passwordConfirm = "As senhas não coincidem.";
+      if (form.fullName.trim() && form.fullName.trim() !== user.fullName) {
+        const fnErr = validateFullName(form.fullName, false);
+        if (fnErr) e.fullName = fnErr;
+      }
     }
     if (!form.email.trim() || !form.email.includes("@")) e.email = "Email inválido";
-    if (!form.fullName.trim()) e.fullName = "Nome obrigatório";
     if (!user && !form.role) e.role = "Selecione o perfil de acesso";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -101,32 +198,30 @@ function UserModal({
     if (user) {
       const payload: UpdateUserRequest = {
         email: form.email.trim(),
-        fullName: form.fullName.trim(),
         role: form.role as UserRole,
         enabled: form.enabled,
         ...(form.password ? { password: form.password } : {}),
+        ...(form.fullName.trim() !== user.fullName ? { fullName: form.fullName.trim() } : {}),
       };
       updateMutation.mutate({ id: user.id, data: payload });
     } else {
       createMutation.mutate({
-        username: form.username.trim(),
         password: form.password,
         email: form.email.trim(),
         fullName: form.fullName.trim(),
         role: form.role as UserRole,
+        ...(preferredUsername.trim() ? { username: preferredUsername.trim() } : {}),
       });
     }
   };
 
   if (!open) return null;
 
-  const field = (key: keyof typeof form) => ({
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
-      setForm((f) => ({ ...f, [key]: value }));
-      setErrors((prev) => { const n = {...prev}; delete n[key]; return n; });
-    },
-  });
+  const setFieldError = (key: string, err: string | null) => {
+    setErrors((prev) => { const n = { ...prev }; if (err) n[key] = err; else delete n[key]; return n; });
+  };
+
+  const isCreate = !user;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -138,18 +233,13 @@ function UserModal({
           <button onClick={onClose} className="text-white/50 hover:text-white transition-colors p-1"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-          {!user && (
+          {user && (
             <div>
               <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
-                <User className="w-3 h-3 inline mr-1" />Usuário (login)
+                Usuário (login)
               </label>
-              <input
-                value={form.username}
-                {...field("username")}
-                placeholder="nome.sobrenome"
-                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.username ? "border-red-400" : "border-border"}`}
-              />
-              {errors.username && <p className="text-[11px] text-red-500 mt-1">{errors.username}</p>}
+              <p className="text-[13px] text-foreground font-medium py-2">{user.username}</p>
+              <p className="text-[11px] text-muted-foreground">O login é gerado pelo sistema e não pode ser alterado.</p>
             </div>
           )}
           <div>
@@ -158,12 +248,45 @@ function UserModal({
             </label>
             <input
               value={form.fullName}
-              {...field("fullName")}
-              placeholder="Nome Completo"
+              onChange={(e) => {
+                const v = e.target.value;
+                setForm((f) => ({ ...f, fullName: v }));
+                setFieldError("fullName", validateFullName(v, isCreate));
+              }}
+              placeholder={user ? "Deixe como está para não alterar" : "Ex.: João dos Santos"}
+              maxLength={FULLNAME_MAX}
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.fullName ? "border-red-400" : "border-border"}`}
             />
             {errors.fullName && <p className="text-[11px] text-red-500 mt-1">{errors.fullName}</p>}
+            {!user && <p className="text-[11px] text-muted-foreground mt-0.5">Apenas letras, espaços, hífens ou apóstrofos (1–100 caracteres). O login será gerado automaticamente.</p>}
           </div>
+          {!user && (
+            <div>
+              <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
+                Login preferido (opcional)
+              </label>
+              <input
+                type="text"
+                value={preferredUsername}
+                onChange={(e) => {
+                  const v = e.target.value.toLowerCase();
+                  setPreferredUsername(v);
+                  setFieldError("username", validateUsername(v));
+                }}
+                list="create-user-username-suggestions"
+                placeholder={suggestionsLoading ? "Carregando sugestões..." : "Deixe vazio para o sistema gerar ou digite ex.: joao.silva"}
+                maxLength={USERNAME_MAX}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all bg-background ${errors.username ? "border-red-400" : "border-border"}`}
+              />
+              <datalist id="create-user-username-suggestions">
+                {suggestions.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              {errors.username && <p className="text-[11px] text-red-500 mt-1">{errors.username}</p>}
+              <p className="text-[11px] text-muted-foreground mt-0.5">Digite seu login (ex.: joao.silva) ou escolha uma sugestão. Se já estiver em uso, escolha outra ou tente um diferente.</p>
+            </div>
+          )}
           <div>
             <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               <Mail className="w-3 h-3 inline mr-1" />Email
@@ -171,7 +294,11 @@ function UserModal({
             <input
               type="email"
               value={form.email}
-              {...field("email")}
+              onChange={(e) => {
+                const v = e.target.value;
+                setForm((f) => ({ ...f, email: v }));
+                setFieldError("email", validateEmail(v));
+              }}
               placeholder="email@nuinf.mil.br"
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.email ? "border-red-400" : "border-border"}`}
             />
@@ -183,7 +310,11 @@ function UserModal({
             </label>
             <select
               value={form.role}
-              {...field("role")}
+              onChange={(e) => {
+                const v = e.target.value as UserRole | "";
+                setForm((f) => ({ ...f, role: v }));
+                setFieldError("role", isCreate && !v ? "Selecione o perfil de acesso" : null);
+              }}
               className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 text-[13px] outline-none bg-background ${errors.role ? "border-red-400" : "border-border"}`}
             >
               <option value="">Selecione o perfil</option>
@@ -199,26 +330,57 @@ function UserModal({
             <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               {user ? "Nova Senha (deixe vazio para não alterar)" : "Senha"}
             </label>
-            <input
-              type="password"
-              value={form.password}
-              {...field("password")}
-              placeholder={user ? "Nova senha (opcional)" : "Mín. 8 chars"}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.password ? "border-red-400" : "border-border"}`}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({ ...f, password: v }));
+                  setFieldError("password", validatePassword(v, isCreate));
+                  setFieldError("passwordConfirm", validatePasswordConfirm(v, form.passwordConfirm, isCreate));
+                }}
+                placeholder={user ? "Nova senha (opcional)" : "Mín. 8 chars"}
+                className={`w-full px-3 pr-10 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.password ? "border-red-400" : "border-border"}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             {errors.password && <p className="text-[11px] text-red-500 mt-1">{errors.password}</p>}
           </div>
           <div>
             <label className="block text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 600 }}>
               {user ? "Confirmar Nova Senha" : "Confirmar Senha"}
             </label>
-            <input
-              type="password"
-              value={form.passwordConfirm}
-              {...field("passwordConfirm")}
-              placeholder={user ? "Repita a nova senha (opcional)" : "Repita a senha"}
-              className={`w-full px-3 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.passwordConfirm ? "border-red-400" : "border-border"}`}
-            />
+            <div className="relative">
+              <input
+                type={showPasswordConfirm ? "text" : "password"}
+                value={form.passwordConfirm}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({ ...f, passwordConfirm: v }));
+                  setFieldError("passwordConfirm", validatePasswordConfirm(form.password, v, isCreate));
+                }}
+                placeholder={user ? "Repita a nova senha (opcional)" : "Repita a senha"}
+                className={`w-full px-3 pr-10 py-2.5 border rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none text-[13px] transition-all ${errors.passwordConfirm ? "border-red-400" : "border-border"}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirm((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                tabIndex={-1}
+                aria-label={showPasswordConfirm ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPasswordConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             {errors.passwordConfirm && <p className="text-[11px] text-red-500 mt-1">{errors.passwordConfirm}</p>}
           </div>
           {user && (

@@ -5,14 +5,25 @@ import { authApi } from "../api/auth.api";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { ThemeSwitcher } from "./theme-switcher";
 
+function validateEmail(value: string): string | null {
+  const t = value.trim();
+  if (!t) return "Email é obrigatório.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "Email inválido.";
+  return null;
+}
+
 export function ForgotPasswordPage() {
   usePageTitle("Recuperar Senha");
   const [email, setEmail] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const err = validateEmail(email);
+    setFieldError(err ?? null);
+    if (err) return;
     setLoading(true);
     try {
       await authApi.forgotPassword(email);
@@ -82,12 +93,17 @@ export function ForgotPasswordPage() {
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setEmail(v);
+                          setFieldError(validateEmail(v));
+                        }}
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px] text-foreground placeholder:text-muted-foreground"
+                        className={`w-full pl-10 pr-4 py-3 bg-background border rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all text-[14px] text-foreground placeholder:text-muted-foreground ${fieldError ? "border-red-500 dark:border-red-500" : "border-border"}`}
                         placeholder="seu@email.com"
                       />
                     </div>
+                    {fieldError && <p className="text-[11px] text-red-500 mt-1">{fieldError}</p>}
                   </div>
 
                   <button
