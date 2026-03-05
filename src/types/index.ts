@@ -124,10 +124,17 @@ export interface LoginResponse {
 }
 
 export interface SetupRequest {
-  username: string;
   password: string;
   email: string;
-  fullName?: string;
+  fullName: string;
+  /** Opcional: login preferido (firstname.lastname, 3–50 caracteres). Se omitido, o backend gera. */
+  username?: string;
+}
+
+/** Resposta 201 do POST /setup: JSON com username gerado pelo backend. */
+export interface SetupResponse {
+  message: string;
+  username: string;
 }
 
 // ─── Usuários ────────────────────────────────────────────────────────────────
@@ -194,11 +201,17 @@ export interface AuditLog {
 }
 
 export interface CreateUserRequest {
-  username: string;
   password: string;
   email: string;
   fullName: string;
   role: UserRole;
+  /** Opcional: login preferido (firstname.lastname, 3–50 caracteres). Se omitido, o backend gera. */
+  username?: string;
+}
+
+/** Resposta do GET /api/auth/suggested-usernames?fullName=... (público). */
+export interface SuggestedUsernamesResponse {
+  suggestions: string[];
 }
 
 export interface UpdateUserRequest {
