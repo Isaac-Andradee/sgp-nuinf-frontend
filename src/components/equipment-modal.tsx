@@ -23,6 +23,17 @@ interface Props {
 const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "ARMAZENAMENTO", "OUTROS"];
 const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
+/** Tipos que exibem e enviam hostname / IP (armazenamento não inclui rede). */
+function isNetworkEquipmentType(t: EquipmentType | ""): boolean {
+  return (
+    t === "PC" ||
+    t === "NOTEBOOK" ||
+    t === "SERVIDOR" ||
+    t === "ROTEADOR" ||
+    t === "IMPRESSORA"
+  );
+}
+
 type FormState = {
   assetNumber: string;
   serialNumber: string;
@@ -253,21 +264,23 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
     if (!form.type) e.type = "Selecione o tipo de equipamento";
     if (!form.status) e.status = "Selecione o status";
     if (!equipment && !form.sectorId) e.sectorId = "Selecione o setor";
-    if (form.networkMode === "FIXO" && form.ipAddress) {
-      const ipValue = form.ipAddress.trim();
-      if (!ipValue) {
-        e.ipAddress = "Digite os últimos dígitos do IP (ex: 10, 100, 255)";
-      } else if (!/^\d{1,3}$/.test(ipValue)) {
-        e.ipAddress = "Digite apenas números (1 a 3 dígitos)";
-      } else {
-        const num = parseInt(ipValue, 10);
-        if (num < 1 || num > 255) {
-          e.ipAddress = "O valor deve estar entre 1 e 255";
+    if (isNetworkEquipmentType(form.type)) {
+      if (form.networkMode === "FIXO" && form.ipAddress) {
+        const ipValue = form.ipAddress.trim();
+        if (!ipValue) {
+          e.ipAddress = "Digite os últimos dígitos do IP (ex: 10, 100, 255)";
+        } else if (!/^\d{1,3}$/.test(ipValue)) {
+          e.ipAddress = "Digite apenas números (1 a 3 dígitos)";
+        } else {
+          const num = parseInt(ipValue, 10);
+          if (num < 1 || num > 255) {
+            e.ipAddress = "O valor deve estar entre 1 e 255";
+          }
         }
       }
+      if (form.hostname && /[^a-zA-Z0-9.-]/.test(form.hostname))
+        e.hostname = "Hostname inválido (apenas letras, números, ponto e hífen)";
     }
-    if (form.hostname && /[^a-zA-Z0-9.-]/.test(form.hostname))
-      e.hostname = "Hostname inválido (apenas letras, números, ponto e hífen)";
     if (showUser && form.equipmentUser.trim()) {
       const euErr = validateEquipmentUser(form.equipmentUser);
       if (euErr) e.equipmentUser = euErr;
@@ -287,17 +300,22 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
         ? rawAssetDigits.padStart(7, "0")
         : "";
 
-    // Trata IP conforme modo de rede
+    const includeNetwork = isNetworkEquipmentType(form.type);
+
+    // Trata IP conforme modo de rede (somente tipos com rede)
     let ipToSend: string | undefined;
-    if (form.networkMode === "DHCP") {
-      ipToSend = "DHCP";
-    } else if (form.networkMode === "FIXO" && form.ipAddress.trim()) {
-      // Normaliza zeros à esquerda (ex.: 013 → 13) antes de enviar ao backend
-      const raw = form.ipAddress.trim();
-      const num = /^\d+$/.test(raw) ? String(parseInt(raw, 10)) : raw;
-      ipToSend = `10.190.110.${num}`;
-    } else if (form.ipAddress.trim()) {
-      ipToSend = form.ipAddress.trim();
+    if (includeNetwork) {
+      if (form.networkMode === "DHCP") {
+        ipToSend = "DHCP";
+      } else if (form.networkMode === "FIXO" && form.ipAddress.trim()) {
+        const raw = form.ipAddress.trim();
+        const num = /^\d+$/.test(raw) ? String(parseInt(raw, 10)) : raw;
+        ipToSend = `10.190.110.${num}`;
+      } else if (form.ipAddress.trim()) {
+        ipToSend = form.ipAddress.trim();
+      } else {
+        ipToSend = undefined;
+      }
     } else {
       ipToSend = undefined;
     }
@@ -311,8 +329,8 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
       status: form.status as EquipmentStatus,
       sectorId: equipment ? equipment.currentSector.id : form.sectorId,
       equipmentUser: form.status ? shouldShowUserField(form.status as EquipmentStatus) ? (form.equipmentUser.trim() ? toTitleCase(form.equipmentUser) : undefined) : undefined : undefined,
-      hostname: form.hostname.trim() || undefined,
-      ipAddress: ipToSend,
+      hostname: includeNetwork ? form.hostname.trim() || undefined : undefined,
+      ipAddress: includeNetwork ? ipToSend : undefined,
     };
 
     if (equipment) {
@@ -325,13 +343,7 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
   if (!open) return null;
 
   const showUser = form.status ? shouldShowUserField(form.status as EquipmentStatus) : false;
-  const shouldShowNetwork =
-    form.type === "PC" ||
-    form.type === "NOTEBOOK" ||
-    form.type === "SERVIDOR" ||
-    form.type === "ROTEADOR" ||
-    form.type === "IMPRESSORA" ||
-    form.type === "ARMAZENAMENTO";
+  const shouldShowNetwork = isNetworkEquipmentType(form.type);
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
