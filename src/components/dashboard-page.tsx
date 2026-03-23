@@ -61,6 +61,7 @@ function getTypeIcon(tipo: EquipmentType) {
     case "ESTABILIZADOR": return Zap;
     case "NOBREAK": return Zap;
     case "ROTULADORA": return Tag;
+    case "ARMAZENAMENTO": return HardDrive;
     case "OUTROS": return Box;
     default: return HardDrive;
   }
@@ -300,7 +301,7 @@ export function DashboardPage() {
     { label: "Inserviveis", value: kpis?.kpiEquipamentos?.totalInservivel ?? "-", icon: AlertTriangle, color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/50", border: "border-red-500", status: "INSERVIVEL" as EquipmentStatus },
   ];
 
-  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "OUTROS"];
+  const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "ARMAZENAMENTO", "OUTROS"];
   const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
   return (

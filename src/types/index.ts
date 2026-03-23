@@ -15,6 +15,8 @@ export type EquipmentType =
   | 'ESTABILIZADOR'
   | 'NOBREAK'
   | 'ROTULADORA'
+  /** NAS, SAN, discos externos, etc. */
+  | 'ARMAZENAMENTO'
   | 'OUTROS';
 
 export type EquipmentStatus =
@@ -41,6 +43,7 @@ export const EQUIPMENT_TYPE_LABELS: Record<EquipmentType, string> = {
   ESTABILIZADOR: 'Estabilizador',
   NOBREAK: 'NoBreak',
   ROTULADORA: 'Rotuladora',
+  ARMAZENAMENTO: 'Armazenamento',
   OUTROS: 'Outros',
 };
 

@@ -20,7 +20,7 @@ interface Props {
   sectors: SectorResponseDTO[];
 }
 
-const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "OUTROS"];
+const EQUIPMENT_TYPES: EquipmentType[] = ["PC", "MONITOR", "TECLADO", "NOTEBOOK", "IMPRESSORA", "ROTEADOR", "SWITCH", "SERVIDOR", "ESTABILIZADOR", "NOBREAK", "ROTULADORA", "ARMAZENAMENTO", "OUTROS"];
 const EQUIPMENT_STATUSES: EquipmentStatus[] = ["DISPONIVEL", "INSERVIVEL", "PROVISORIO", "EM_USO", "MANUTENCAO", "BAIXADO", "EXCLUIDO"];
 
 type FormState = {
@@ -326,7 +326,12 @@ export function EquipmentModal({ open, onClose, onSaved, equipment, sectors }: P
 
   const showUser = form.status ? shouldShowUserField(form.status as EquipmentStatus) : false;
   const shouldShowNetwork =
-    form.type === "PC" || form.type === "NOTEBOOK" || form.type === "SERVIDOR" || form.type === "ROTEADOR" || form.type === "IMPRESSORA";
+    form.type === "PC" ||
+    form.type === "NOTEBOOK" ||
+    form.type === "SERVIDOR" ||
+    form.type === "ROTEADOR" ||
+    form.type === "IMPRESSORA" ||
+    form.type === "ARMAZENAMENTO";
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ fontFamily: "'Inter', sans-serif" }}>
