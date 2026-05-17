@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Shield,
@@ -10,14 +10,159 @@ import {
   Monitor,
   Filter,
   X,
+  Package,
 } from "lucide-react";
 import { auditApi } from "../api/audit.api";
+import { equipmentApi } from "../api/equipment.api";
+import { sectorApi } from "../api/sector.api";
 import {
   AUDIT_ACTION_LABELS,
   AUDIT_ACTION_COLORS,
+  EQUIPMENT_TYPE_LABELS,
+  getEquipmentTypeLabel,
+  isEquipmentWithoutAsset,
 } from "../types";
-import type { AuditActionType } from "../types";
+import type { AuditActionType, AuditLog, EquipmentResponseDTO, EquipmentType, SectorResponseDTO } from "../types";
 import { usePageTitle } from "../hooks/usePageTitle";
+
+const UUID_RE =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi;
+
+/** Patrimônio → serial → fallback legível (sem UUID). */
+function getEquipmentDisplayName(eq: EquipmentResponseDTO | undefined): string {
+  if (!eq) return "Equipamento indisponível";
+  const hasAsset = !isEquipmentWithoutAsset(eq.assetNumber, eq.id);
+  if (hasAsset) return eq.assetNumber;
+  if (eq.serialNumber) return `S/N ${eq.serialNumber}`;
+  return "Sem patrimônio";
+}
+
+/** Resolve UUID na descrição: equipamento → patrimônio/série; setor → sigla. */
+function resolveAuditUuid(
+  id: string,
+  equipmentMap: Map<string, EquipmentResponseDTO>,
+  sectorMap: Map<string, SectorResponseDTO>,
+): string {
+  const eq = equipmentMap.get(id);
+  if (eq) return getEquipmentDisplayName(eq);
+  const sector = sectorMap.get(id);
+  if (sector) return sector.acronym;
+  return id;
+}
+
+const EQUIPMENT_TYPE_ENUM_RE = new RegExp(
+  `\\b(${Object.keys(EQUIPMENT_TYPE_LABELS).join("|")})\\b`,
+  "g",
+);
+
+/** Backend grava EquipmentType.name() (ex.: ARMAZENAMENTO); exibimos o label (Armazenamento). */
+function humanizeEquipmentTypeEnums(text: string): string {
+  return text.replace(EQUIPMENT_TYPE_ENUM_RE, (token) =>
+    getEquipmentTypeLabel(token as EquipmentType),
+  );
+}
+
+function trimOrphanHostnameSeparator(text: string): string {
+  return text.replace(/\s+—\s*$/g, "").trim();
+}
+
+const EQUIPMENT_CREATE_DESC_RE = /^Equipamento cadastrado:\s*(.+)$/i;
+
+/**
+ * Cadastro no backend: tipo — hostname. Sem host, complementa com marca do equipamento.
+ */
+function enrichEquipmentCreateDescription(
+  text: string,
+  eq: EquipmentResponseDTO,
+): string {
+  const match = EQUIPMENT_CREATE_DESC_RE.exec(text.trim());
+  if (!match) return text;
+
+  const typeLabel = getEquipmentTypeLabel(eq.type);
+  const brand = eq.brand?.trim();
+  const rest = match[1].trim();
+  const dashIdx = rest.indexOf(" — ");
+
+  if (dashIdx >= 0) {
+    const host = rest.slice(dashIdx + 3).trim();
+    if (host && brand) {
+      return `Equipamento cadastrado: ${typeLabel} · ${brand} — ${host}`;
+    }
+    if (!host && brand) {
+      return `Equipamento cadastrado: ${typeLabel} · ${brand}`;
+    }
+    if (host) {
+      return `Equipamento cadastrado: ${typeLabel} — ${host}`;
+    }
+    return `Equipamento cadastrado: ${typeLabel}`;
+  }
+
+  if (brand && rest !== `${typeLabel} · ${brand}`) {
+    return `Equipamento cadastrado: ${typeLabel} · ${brand}`;
+  }
+  return `Equipamento cadastrado: ${typeLabel}`;
+}
+
+/** Troca UUIDs por patrimônio/série/sigla e omite campos cujo valor é null (ex.: hostname). */
+function formatAuditDescription(
+  text: string,
+  equipmentMap: Map<string, EquipmentResponseDTO>,
+  sectorMap: Map<string, SectorResponseDTO>,
+  actionType?: AuditActionType,
+  entityEquipment?: EquipmentResponseDTO,
+): string {
+  let s = text.replace(UUID_RE, (id) => resolveAuditUuid(id, equipmentMap, sectorMap));
+  s = s.replace(/\b(hostname|host|ip(?:\s*address)?)\s*[:=]\s*null\b/gi, "");
+  s = s.replace(/\([^)]*\bnull\b[^)]*\)/gi, "");
+  s = s.replace(/\bnull\b/gi, "");
+  s = humanizeEquipmentTypeEnums(s);
+  s = trimOrphanHostnameSeparator(s);
+  s = s
+    .replace(/\s*[,;|·]\s*([,;|·]\s*)+/g, " · ")
+    .replace(/^\s*[,;|·]\s*/g, "")
+    .replace(/\s*[,;|·]\s*$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  if (actionType === "EQUIPMENT_CREATE" && entityEquipment) {
+    s = enrichEquipmentCreateDescription(s, entityEquipment);
+  }
+
+  return s;
+}
+
+function isEquipmentAuditLog(log: AuditLog): boolean {
+  return log.entityType === "Equipment" || log.actionType.startsWith("EQUIPMENT_");
+}
+
+function EquipmentBadge({ eq }: { eq: EquipmentResponseDTO | undefined }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mb-1.5">
+      <Package className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 flex-shrink-0" />
+      <span className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>
+        {getEquipmentDisplayName(eq)}
+      </span>
+      {eq && (
+        <span className="text-[11px] text-muted-foreground">
+          · {EQUIPMENT_TYPE_LABELS[eq.type]} {eq.brand}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EntityFooter({ log }: { log: AuditLog }) {
+  if (!log.entityId || isEquipmentAuditLog(log)) return null;
+  return (
+    <p className="text-[10px] text-muted-foreground mt-1.5">
+      <span className="uppercase tracking-wide" style={{ fontWeight: 600 }}>
+        {log.entityType}
+      </span>
+      {" · "}
+      <span>{log.entityId}</span>
+    </p>
+  );
+}
 
 const ACTION_TYPE_OPTIONS: { value: AuditActionType | ""; label: string }[] = [
   { value: "",                   label: "Todos os eventos"          },
@@ -93,6 +238,32 @@ export function AuditoriaPage() {
       }),
     placeholderData: (prev) => prev,
   });
+
+  // Carrega todos os equipamentos uma vez para resolver entityId → patrimônio/serial.
+  // Cache longo: o usuário do audit normalmente só consulta, não cria equipamentos.
+  const { data: allEquipments } = useQuery({
+    queryKey: ["equipments-all-for-audit"],
+    queryFn: () => equipmentApi.filter({}),
+    staleTime: 5 * 60_000,
+  });
+
+  const equipmentMap = useMemo(() => {
+    const m = new Map<string, EquipmentResponseDTO>();
+    (allEquipments ?? []).forEach((e) => m.set(e.id, e));
+    return m;
+  }, [allEquipments]);
+
+  const { data: allSectors } = useQuery({
+    queryKey: ["sectors-for-audit"],
+    queryFn: sectorApi.list,
+    staleTime: 5 * 60_000,
+  });
+
+  const sectorMap = useMemo(() => {
+    const m = new Map<string, SectorResponseDTO>();
+    (allSectors ?? []).forEach((s) => m.set(s.id, s));
+    return m;
+  }, [allSectors]);
 
   const clearFilters = () => {
     setActorSearch("");
@@ -235,10 +406,23 @@ export function AuditoriaPage() {
               ) : (
                 data?.content.map((log) => {
                   const colors = AUDIT_ACTION_COLORS[log.actionType];
+                  const isEquipment = isEquipmentAuditLog(log);
+                  const eq = isEquipment && log.entityId
+                    ? equipmentMap.get(log.entityId)
+                    : undefined;
+                  const description = log.description
+                    ? formatAuditDescription(
+                        log.description,
+                        equipmentMap,
+                        sectorMap,
+                        log.actionType,
+                        eq,
+                      )
+                    : "";
                   return (
                     <tr key={log.id} className="hover:bg-muted/50 transition-colors duration-100">
                       {/* Data */}
-                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap align-top">
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
@@ -254,7 +438,7 @@ export function AuditoriaPage() {
                       </td>
 
                       {/* Usuário */}
-                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap align-top">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <User className="w-3.5 h-3.5 text-primary" />
@@ -266,7 +450,7 @@ export function AuditoriaPage() {
                       </td>
 
                       {/* Tipo de evento */}
-                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap align-top">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] ${colors.bg} ${colors.text}`}
                           style={{ fontWeight: 600 }}
@@ -277,19 +461,22 @@ export function AuditoriaPage() {
                       </td>
 
                       {/* Descrição */}
-                      <td className="px-4 md:px-5 py-3.5">
-                        <p className="text-[13px] text-foreground max-w-[360px] truncate" title={log.description}>
-                          {log.description || <span className="text-muted-foreground">—</span>}
-                        </p>
-                        {log.entityId && (
-                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                            {log.entityType} · {log.entityId.slice(0, 8)}…
-                          </p>
-                        )}
+                      <td className="px-4 md:px-5 py-3.5 align-top">
+                        <div className="min-w-[280px] max-w-[720px]">
+                          {isEquipment && <EquipmentBadge eq={eq} />}
+                          {description ? (
+                            <p className="text-[12.5px] text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                              {description}
+                            </p>
+                          ) : !isEquipment ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : null}
+                          <EntityFooter log={log} />
+                        </div>
                       </td>
 
                       {/* IP */}
-                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap">
+                      <td className="px-4 md:px-5 py-3.5 whitespace-nowrap align-top">
                         {log.ipAddress ? (
                           <div className="flex items-center gap-1.5">
                             <Monitor className="w-3 h-3 text-muted-foreground flex-shrink-0" />
