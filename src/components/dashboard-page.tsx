@@ -860,41 +860,99 @@ export function DashboardPage() {
 
         {/* Pagination */}
         <div className="bg-muted/50 px-4 md:px-6 py-3 border-t border-border flex flex-col md:flex-row items-center justify-between gap-3">
-          <span className="text-[12px] text-muted-foreground">
-            Total:{" "}
-            <span style={{ fontWeight: 600 }}>{totalElements}</span> registro{totalElements !== 1 ? "s" : ""}
-          </span>
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-                disabled={currentPage === 0}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i).map((i) => (
+          <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+            <span>
+              Pagina{" "}
+              <span style={{ fontWeight: 600 }} className="text-foreground">{Math.min(currentPage + 1, Math.max(totalPages, 1))}</span>
+              {" "}de{" "}
+              <span style={{ fontWeight: 600 }} className="text-foreground">{Math.max(totalPages, 1)}</span>
+            </span>
+            {totalPages > 1 && (
+              <span className="flex items-center gap-1.5">
+                <label htmlFor="page-jump" className="text-muted-foreground">Ir para:</label>
+                <input
+                  id="page-jump"
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={currentPage + 1}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === "") return;
+                    const n = Number.parseInt(raw, 10);
+                    if (Number.isNaN(n)) return;
+                    const clamped = Math.min(Math.max(n, 1), totalPages);
+                    setCurrentPage(clamped - 1);
+                  }}
+                  className="w-14 px-2 py-1 rounded-md border border-border bg-background text-[12px] text-foreground focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10 outline-none tabular-nums"
+                />
+              </span>
+            )}
+            <span className="hidden sm:inline text-muted-foreground/70">
+              ({totalElements} registro{totalElements !== 1 ? "s" : ""})
+            </span>
+          </div>
+          {totalPages > 1 && (() => {
+            const maxVisible = 7;
+            const half = Math.floor(maxVisible / 2);
+            let start = Math.max(0, currentPage - half);
+            const end = Math.min(totalPages, start + maxVisible);
+            start = Math.max(0, end - maxVisible);
+            const pages = Array.from({ length: end - start }, (_, i) => start + i);
+            return (
+              <div className="flex items-center gap-1">
                 <button
-                  key={i}
-                  onClick={() => setCurrentPage(i)}
-                  className={`w-8 h-8 rounded-lg text-[13px] transition-all duration-150 ${currentPage === i
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-muted-foreground hover:bg-muted"
-                    }`}
-                  style={{ fontWeight: currentPage === i ? 600 : 400 }}
+                  onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                 >
-                  {i + 1}
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={currentPage >= totalPages - 1}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+                {start > 0 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentPage(0)}
+                      className="w-8 h-8 rounded-lg text-[13px] text-muted-foreground hover:bg-muted transition-all duration-150"
+                    >
+                      1
+                    </button>
+                    {start > 1 && <span className="px-1 text-muted-foreground text-[13px]">…</span>}
+                  </>
+                )}
+                {pages.map((i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`w-8 h-8 rounded-lg text-[13px] transition-all duration-150 ${currentPage === i
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    style={{ fontWeight: currentPage === i ? 600 : 400 }}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                {end < totalPages && (
+                  <>
+                    {end < totalPages - 1 && <span className="px-1 text-muted-foreground text-[13px]">…</span>}
+                    <button
+                      onClick={() => setCurrentPage(totalPages - 1)}
+                      className="w-8 h-8 rounded-lg text-[13px] text-muted-foreground hover:bg-muted transition-all duration-150"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
