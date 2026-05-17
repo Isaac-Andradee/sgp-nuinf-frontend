@@ -6,7 +6,6 @@ import {
   Wrench,
   AlertTriangle,
   Plus,
-  BarChart3,
   Search,
   X,
   ChevronLeft,
@@ -99,7 +98,6 @@ export function DashboardPage() {
   const queryClient = useQueryClient();
   const { canCreateEquipment, canEditEquipment, canDeleteEquipment, isAdmin } = usePermissions();
 
-  const [showStats, setShowStats] = useState(false);
   const [selectedSector, setSelectedSector] = useState<SectorMetricDTO | null>(null);
   const [search, setSearch] = useState("");
   const [filterSetorId, setFilterSetorId] = useState("");
@@ -124,7 +122,6 @@ export function DashboardPage() {
     queryKey: ["sector-stats"],
     queryFn: equipmentApi.getSectorStats,
     staleTime: 30_000,
-    enabled: showStats,
   });
 
   const { data: sectors } = useQuery({
@@ -317,17 +314,6 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2.5 w-full md:w-auto">
-          <button
-            onClick={() => setShowStats(!showStats)}
-            className={`flex-1 md:flex-none text-[13px] px-4 py-2.5 rounded-lg border transition-all duration-200 flex items-center justify-center gap-2 ${showStats
-              ? "bg-primary text-white border-primary"
-              : "bg-card text-primary border-border hover:border-primary/30 hover:bg-primary/5"
-              }`}
-            style={{ fontWeight: 500 }}
-          >
-            <BarChart3 className="w-4 h-4" />
-            Estatisticas
-          </button>
           {canCreateEquipment && (
             <button
               onClick={() => {
@@ -474,8 +460,7 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Panel */}
-      {showStats && (
-        <div className="mb-6 space-y-3">
+      <div className="mb-6 space-y-3">
           {/* Cards de setores */}
           <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
             <div className="flex justify-between items-center mb-4">
@@ -619,7 +604,6 @@ export function DashboardPage() {
             </div>
           )}
         </div>
-      )}
 
       {/* Table section */}
       <div ref={tableSectionRef} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden scroll-mt-4">
