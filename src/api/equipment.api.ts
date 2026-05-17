@@ -23,10 +23,12 @@ function normalizeEquipmentItem(raw: unknown): EquipmentResponseDTO {
   const o = raw as Record<string, unknown>;
   const type = (o.type ?? o.equipmentType ?? o.equipment_type ?? o.tipo) as EquipmentType | undefined;
   const status = (o.status ?? o.equipmentStatus ?? o.equipment_status ?? o.situacao) as EquipmentStatus | undefined;
+  const serialNumber = (o.serialNumber ?? o.serial ?? o.numeroSerie ?? o.numero_serie) as string | undefined;
   return {
     ...o,
     ...(type !== undefined && { type }),
     ...(status !== undefined && { status }),
+    ...(serialNumber !== undefined && { serialNumber }),
   } as EquipmentResponseDTO;
 }
 

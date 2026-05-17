@@ -19,8 +19,8 @@ import {
   AUDIT_ACTION_LABELS,
   AUDIT_ACTION_COLORS,
   EQUIPMENT_TYPE_LABELS,
+  getEquipmentPrimaryIdentifier,
   getEquipmentTypeLabel,
-  isEquipmentWithoutAsset,
 } from "../types";
 import type { AuditActionType, AuditLog, EquipmentResponseDTO, EquipmentType, SectorResponseDTO } from "../types";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -31,10 +31,7 @@ const UUID_RE =
 /** Patrimônio → serial → fallback legível (sem UUID). */
 function getEquipmentDisplayName(eq: EquipmentResponseDTO | undefined): string {
   if (!eq) return "Equipamento indisponível";
-  const hasAsset = !isEquipmentWithoutAsset(eq.assetNumber, eq.id);
-  if (hasAsset) return eq.assetNumber;
-  if (eq.serialNumber) return `S/N ${eq.serialNumber}`;
-  return "Sem patrimônio";
+  return getEquipmentPrimaryIdentifier(eq);
 }
 
 /** Resolve UUID na descrição: equipamento → patrimônio/série; setor → sigla. */

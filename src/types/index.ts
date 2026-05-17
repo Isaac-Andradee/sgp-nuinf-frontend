@@ -262,9 +262,21 @@ export interface EquipmentResponseDTO {
   hasOpenDefect?: boolean;
 }
 
+/** Patrimônio válido; sem patrimônio → S/N; senão fallback. */
+export function getEquipmentPrimaryIdentifier(
+  e: Pick<EquipmentResponseDTO, 'assetNumber' | 'serialNumber' | 'id'>,
+): string {
+  if (!isEquipmentWithoutAsset(e.assetNumber, e.id)) {
+    return e.assetNumber.trim();
+  }
+  const serial = e.serialNumber?.trim();
+  if (serial) return `S/N ${serial}`;
+  return 'Sem patrimônio';
+}
+
 /** Texto curto para input/select (patrimônio · tipo marca · setor). */
 export function getEquipmentShortLabel(e: EquipmentResponseDTO): string {
-  const pat = isEquipmentWithoutAsset(e.assetNumber, e.id) ? 'Sem patrimônio' : e.assetNumber;
+  const pat = getEquipmentPrimaryIdentifier(e);
   return `${pat} · ${getEquipmentTypeLabel(e.type)} ${e.brand} · ${e.currentSector.acronym}`;
 }
 
